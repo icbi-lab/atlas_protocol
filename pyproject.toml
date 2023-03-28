@@ -54,12 +54,6 @@ test = [
 [tool.hatch.build.targets.wheel]
 packages = ['src/atlas_protocol_scripts']
 
-[tool.coverage.run]
-source = ["atlas_protocol_scripts"]
-omit = [
-    "**/test_*.py",
-]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 xfail_strict = true

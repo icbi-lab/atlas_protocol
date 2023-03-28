@@ -1,8 +1,7 @@
 """Visualize scanpy QC metrics"""
 import matplotlib.pyplot as plt
 import seaborn as sns
-import numpy as np
-import pandas as pd
+
 
 def plot_qc_metrics(
     adata,
@@ -29,26 +28,20 @@ def plot_qc_metrics(
         "pct_counts_mito",
     )
     fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(17, 10))
-    axs = {k: ax for k, ax in zip(KEYS, axs.flatten())}
+    axs = dict(zip(KEYS, axs.flatten()))
 
     def _add_line(ax, val):
         if val is not None:
             if cumulative:
-                ax.hlines(
-                    y=val, color="red", linewidth=1, xmin=0, xmax=ax.get_xlim()[1]
-                )
+                ax.hlines(y=val, color="red", linewidth=1, xmin=0, xmax=ax.get_xlim()[1])
             else:
-                ax.vlines(
-                    x=val, color="red", linewidth=1, ymin=0, ymax=ax.get_ylim()[1]
-                )
+                ax.vlines(x=val, color="red", linewidth=1, ymin=0, ymax=ax.get_ylim()[1])
 
     for key, ax in axs.items():
         if key == "total_counts (< 5000)":
             values = adata.obs["total_counts"][adata.obs["total_counts"] < 5000]
         elif key == "n_genes_by_counts (< 1000)":
-            values = adata.obs["n_genes_by_counts"][
-                adata.obs["n_genes_by_counts"] < 1000
-            ]
+            values = adata.obs["n_genes_by_counts"][adata.obs["n_genes_by_counts"] < 1000]
         else:
             values = adata.obs[key]
 

@@ -1,1 +1,3 @@
-from .basic import BasicClass, basic_plot
+from ._qc import plot_qc_metrics
+
+__all__ = ["plot_qc_metrics"]

@@ -12,6 +12,8 @@ notebooks/03_merge.ipynb
 notebooks/04_integrate_scvi.ipynb
 notebooks/05_cell_type_annotation.ipynb
 
+notebooks/09_compositional.ipynb
+
 api.md
 changelog.md
 template_usage.md

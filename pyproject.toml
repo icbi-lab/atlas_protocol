@@ -19,9 +19,13 @@ urls.Documentation = "https://atlas_protocol.readthedocs.io/"
 urls.Source = "https://github.com/icbi-lab/atlas_protocol"
 urls.Home-page = "https://github.com/icbi-lab/atlas_protocol"
 dependencies = [
-    "anndata",
+    "anndata>=0.8",
     # for debug logging (referenced from the issue template)
-    "session-info"
+    "session-info",
+    "scanpy>=1.9.2",
+    "matplotlib",
+    "pandas",
+    "altair",
 ]
 
 [project.optional-dependencies]
@@ -121,7 +125,7 @@ convention = "numpy"
 "*/__init__.py" = ["F401"]
 
 [tool.jupytext]
-formats = "ipynb,md"
+formats = "ipynb"
 
 [tool.cruft]
 skip = [

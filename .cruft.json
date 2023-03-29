@@ -1,7 +1,7 @@
 {
     "template": "https://github.com/scverse/cookiecutter-scverse",
-    "commit": "1434c56aeae999b606cf30d7b8d57d491034afec",
-    "checkout": null,
+    "commit": "57f6267716826dad73baba46dc3c00fe7262c459",
+    "checkout": "v0.2.0",
     "context": {
         "cookiecutter": {
             "project_name": "atlas_protocol",

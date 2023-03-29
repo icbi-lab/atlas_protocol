@@ -1,4 +1,4 @@
-"""Visualize scanpy QC metrics"""
+"""Visualize scanpy QC metrics."""
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -13,8 +13,7 @@ def plot_qc_metrics(
     max_counts=None,
     show=True,
 ):
-    """
-    Plots the QC metrics generated with scanpy.pp.calculate_qc_metrics.
+    """Plots the QC metrics generated with scanpy.pp.calculate_qc_metrics.
 
     calculate_qc_metrics needs to be ran with `qc_vars=("mito", )`.
 

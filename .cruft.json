@@ -1,23 +1,23 @@
 {
-    "template": "https://github.com/scverse/cookiecutter-scverse",
-    "commit": "1434c56aeae999b606cf30d7b8d57d491034afec",
-    "checkout": null,
-    "context": {
-        "cookiecutter": {
-            "project_name": "atlas_protocol",
-            "package_name": "atlas_protocol_scripts",
-            "project_description": "A computational protocol for atlas-level data integration and analysis as performed in Salcher et al. (2022). ",
-            "author_full_name": "Gregor Sturm",
-            "author_email": "mail@gregor-sturm.de",
-            "github_user": "icbi-lab",
-            "project_repo": "https://github.com/icbi-lab/atlas_protocol",
-            "license": "BSD 3-Clause License",
-            "_copy_without_render": [
-                ".github/workflows/**.yaml",
-                "docs/_templates/autosummary/**.rst"
-            ],
-            "_template": "https://github.com/scverse/cookiecutter-scverse"
-        }
-    },
-    "directory": null
+  "template": "https://github.com/scverse/cookiecutter-scverse",
+  "commit": "57f6267716826dad73baba46dc3c00fe7262c459",
+  "checkout": "v0.2.0",
+  "context": {
+    "cookiecutter": {
+      "project_name": "atlas_protocol",
+      "package_name": "atlas_protocol_scripts",
+      "project_description": "A computational protocol for atlas-level data integration and analysis as performed in Salcher et al. (2022). ",
+      "author_full_name": "Gregor Sturm",
+      "author_email": "mail@gregor-sturm.de",
+      "github_user": "icbi-lab",
+      "project_repo": "https://github.com/icbi-lab/atlas_protocol",
+      "license": "BSD 3-Clause License",
+      "_copy_without_render": [
+        ".github/workflows/**.yaml",
+        "docs/_templates/autosummary/**.rst"
+      ],
+      "_template": "https://github.com/scverse/cookiecutter-scverse"
+    }
+  },
+  "directory": null
 }

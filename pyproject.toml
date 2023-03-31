@@ -37,7 +37,7 @@ dev = [
 ]
 doc = [
     "sphinx>=4",
-    "sphinx-book-theme>=1.0.0",
+    "sphinx-book-theme>=1.0.1",
     "myst-nb",
     "sphinxcontrib-bibtex>=1.0.0",
     "sphinx-autodoc-typehints",

@@ -1,12 +1,12 @@
 name: atlas_protocol
 channels:
-  - bioconda
-  - conda-forge
+    - bioconda
+    - conda-forge
 dependencies:
-  - python=3.9
-  - ipykernel
-  - ipython
-  - pip
-  - pip:
-      - scanpy
-      - leidenalg
+    - python=3.9
+    - ipykernel
+    - ipython
+    - pip
+    - pip:
+          - scanpy
+          - leidenalg

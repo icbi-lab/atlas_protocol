@@ -4,7 +4,7 @@ import atlas_protocol_scripts
 
 
 def test_package_has_version():
-    atlas_protocol_scripts.__version__
+    assert atlas_protocol_scripts.__version__ is not None
 
 
 @pytest.mark.skip(reason="This decorator should be removed when test passes.")

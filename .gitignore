@@ -1,4 +1,6 @@
-.ipynb_checkpoints
+# data directories
+/results
+
 # Temp files
 .DS_Store
 *~
@@ -27,3 +29,4 @@ __pycache__/
 # IDEs
 /.idea/
 /.vscode/
+.ipynb_checkpoints

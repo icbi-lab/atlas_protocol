@@ -18,7 +18,7 @@ Optional options:
     --surv_time=<surv_time>         Column with survival time for coxph regression. Must be combined with --surv_status
     --surv_status=<surv_status>     Column with survival status for coxpy regression.
     --sample_col=<sample_col>       Column in <metadata> with sample identifier (must match colnames of <bulk_tpm>) [default: sample_id]
-    --prefix=<prefix>               Prefix for the output filename
+    --out_dir=<out_dir>             Output directory
 " -> doc
 
 library(conflicted)
@@ -32,7 +32,8 @@ library(readxl)
 library(SingleCellExperiment)
 library(readxl)
 library(dplyr)
-conflict_prefer("filter", "dplyr")
+conflicts_prefer(dplyr::filter)
+conflicts_prefer(base::intersect)
 library(readr)
 library(stringr)
 library(ggplot2)
@@ -45,7 +46,7 @@ column <- arguments$column
 surv_time <- arguments$surv_time
 surv_status <- arguments$surv_status
 tumor_type <- arguments$tumor_type
-prefix <- arguments$prefix
+out_dir <- arguments$out_dir
 
 # # For testing only
 # sce = readRDS("../data/30_downstream_analyses/scissor/adata_by_patient/full_atlas_merged_lambrechts_thienpont_2018_6149v1_2.rds")
@@ -78,7 +79,7 @@ message("preprocessing single-cell data")
 # But compared to the scissor regression, the runtime of this part is negligible.
 sc_dataset <- Seurat_preprocessing(assays(sce)$X)
 p <- DimPlot(sc_dataset, reduction = "umap", label = T, label.size = 5)
-ggsave("dim_plot_seurat.pdf", plot = p)
+ggsave(file.path(out_dir, "dim_plot_seurat.pdf"), plot = p)
 
 if (!is.null(column)) {
     message("running binomial regression")
@@ -141,6 +142,9 @@ p <- DimPlot(sc_dataset_meta,
     reduction = "umap", group.by = "scissor",
     cols = c("royalblue", "indianred1"), pt.size = .2, order = c(2, 1)
 )
-ggsave("dim_plot_scissor.pdf", plot = p)
+ggsave(file.path(out_dir, "dim_plot_scissor.pdf"), plot = p)
 
-write_tsv(as.data.frame(Scissor_select) %>% as_tibble(rownames = "cell_id"), sprintf("scissor_%s_%s_%s.tsv", prefix, tumor_type, sample_prefix))
+write_tsv(
+    as.data.frame(Scissor_select) %>% as_tibble(rownames = "cell_id"),
+    file.path(out_dir, sprintf("scissor_%s_%s.tsv", column, tumor_type))
+)

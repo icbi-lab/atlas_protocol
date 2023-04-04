@@ -14,7 +14,8 @@ The program will take the intersection of the <sample_col> in <metadata> and the
 
 Optional options:
     --column=<column>               Column with binary variable for binomial regression
-    --tumor_type=<tumor_type>       Restrict analysis to certain tumor type [default: any]
+    --filter_col=<filter_col>       Column by which to filter the samples
+    --filter_val=<filter_val>       Only keep rows in the metadata with this value in `filter_col`
     --surv_time=<surv_time>         Column with survival time for coxph regression. Must be combined with --surv_status
     --surv_status=<surv_status>     Column with survival status for coxpy regression.
     --sample_col=<sample_col>       Column in <metadata> with sample identifier (must match colnames of <bulk_tpm>) [default: sample_id]
@@ -45,7 +46,8 @@ sample_col <- arguments$sample_col
 column <- arguments$column
 surv_time <- arguments$surv_time
 surv_status <- arguments$surv_status
-tumor_type <- arguments$tumor_type
+filter_col <- arguments$filter_col
+filter_val <- arguments$filter_val
 out_dir <- arguments$out_dir
 
 # # For testing only
@@ -62,8 +64,8 @@ out_dir <- arguments$out_dir
 # surv_status = NULL
 
 message("subsetting data to intersection")
-if (tumor_type != "any") {
-    metadata <- metadata %>% filter(type == !!tumor_type)
+if (!is.null(filter_col)) {
+    metadata <- metadata[metadata[[filter_col]] == filter_val, ]
 }
 message(paste(dim(metadata), collapse = " "))
 common_patients <- sort(intersect(colnames(bulk_tpm), metadata[[sample_col]]))

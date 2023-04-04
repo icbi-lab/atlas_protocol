@@ -11,7 +11,8 @@ import scanpy as sc
 
 from atlas_protocol_scripts.pl import significance_heatmap
 
-from . import fdr_correction, pseudobulk
+from ._fdr import fdr_correction
+from ._pseudobulk import pseudobulk
 
 
 class CpdbAnalysis:

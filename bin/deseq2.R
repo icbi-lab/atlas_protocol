@@ -30,7 +30,7 @@ count_mat <- as.matrix(read.csv(readCountFile,sep="\t",row.names="gene_symbol"))
 count_mat <- as.data.frame(count_mat)
 allSampleAnno <- read.csv(sampleAnnotationCSV, row.names=1)
 
-count_mat[,-1]= round(count_mat[,-1],0) 
+count_mat[,-1]= round(count_mat[,-1],0)
 
 #sampleAnno <- allSampleAnno %>%
 #  filter(get(cond_col) %in% contrast[2:3])
@@ -58,5 +58,3 @@ resIHW <- as.data.frame(resIHW ) |>
 
 #### write results to TSV and XLSX files
 write.csv(resIHW , "/data/projects/2023/atlas_protocol/results/differential_expression/IHWallGenes.tsv", row.names=FALSE)
-
-

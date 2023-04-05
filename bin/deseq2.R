@@ -23,10 +23,14 @@ covariate_formula = ""
 #contrast = c(cond_col, arguments$c1, arguments$c2)
 #covariate_formula = arguments$covariate_formula
 
-count_mat <- read_tsv(readCountFile)
-allSampleAnno <- read_csv(sampleAnnotationCSV)
+#count_mat <- read_tsv(readCountFile, row.names="gene_symbol")
+#allSampleAnno <- read_csv(sampleAnnotationCSV,  row.names=1)
 
-count_mat[,-1]= round(count_mat[,-1],0)
+count_mat <- as.matrix(read.csv(readCountFile,sep="\t",row.names="gene_symbol"))
+count_mat <- as.data.frame(count_mat)
+allSampleAnno <- read.csv(sampleAnnotationCSV, row.names=1)
+
+count_mat[,-1]= round(count_mat[,-1],0) 
 
 #sampleAnno <- allSampleAnno %>%
 #  filter(get(cond_col) %in% contrast[2:3])
@@ -35,25 +39,24 @@ design_formula <- as.formula(paste0("~", cond_col, covariate_formula))
 
 
 ################# Start processing
-dds <- DESeqDataSetFromMatrix(countData = count_mat[,-1],
+dds <- DESeqDataSetFromMatrix(countData = count_mat,
                               colData = allSampleAnno,
                               design = design_formula)
-# Set the reference to the contrast level 2 (baseline) given by the --c2 option
-dds[[cond_col]] = relevel( dds[[cond_col]], contrast[[3]])
-
-
 # run DESeq
-dds <- DESeq(dds)
+dds.res<- DESeq(dds)
 
 ### IHW
 
 # use of IHW for p value adjustment of DESeq2 results
-resIHW <- results(dds, filterFun=ihw, contrast=contrast)
+resIHW <- results(dds.res, filterFun=ihw, contrast=contrast)
 
 resIHW <- as.data.frame(resIHW ) |>
   rownames_to_column(var = "gene_id") |>
   as_tibble() |>
   arrange(padj)
 
+
 #### write results to TSV and XLSX files
-write.csv(resIHW , "/data/projects/2023/atlas_protocol/results/differential_expression/IHWallGenes.tsv", row.names=TRUE)
+write.csv(resIHW , "/data/projects/2023/atlas_protocol/results/differential_expression/IHWallGenes.tsv", row.names=FALSE)
+
+

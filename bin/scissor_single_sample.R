@@ -50,19 +50,6 @@ filter_col <- arguments$filter_col
 filter_val <- arguments$filter_val
 out_dir <- arguments$out_dir
 
-# # For testing only
-# sce = readRDS("../data/30_downstream_analyses/scissor/adata_by_patient/full_atlas_merged_lambrechts_thienpont_2018_6149v1_2.rds")
-# bulk_tpm = readRDS("../data/14_ici_treatment/Genentech_for_scissor/genentech.rds")
-# metadata = read_tsv("../data/14_ici_treatment/Genentech_for_scissor/genentech_clinical_data.tsv")
-# sample_col = "sample_id"
-# column = NULL
-# surv_time = "time_chemo"
-# surv_status = "status_chemo"
-# column = "response_binary"
-# tumor_type = "any"
-# surv_time = NULL
-# surv_status = NULL
-
 message("subsetting data to intersection")
 if (!is.null(filter_col)) {
     metadata <- metadata[metadata[[filter_col]] == filter_val, ]
@@ -148,5 +135,5 @@ ggsave(file.path(out_dir, "dim_plot_scissor.pdf"), plot = p)
 
 write_tsv(
     as.data.frame(Scissor_select) %>% as_tibble(rownames = "cell_id"),
-    file.path(out_dir, sprintf("scissor_%s_%s.tsv", column, tumor_type))
+    file.path(out_dir, sprintf("scissor_%s_%s.tsv", column, filter_val))
 )

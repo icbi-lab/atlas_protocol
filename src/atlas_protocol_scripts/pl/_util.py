@@ -1,24 +1,18 @@
-"""Helper functions for creating plots"""
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-import pandas as pd
+"""Helper functions for creating plots."""
 
 import os
 from pathlib import Path
-import warnings
 
 
 def reshape_clustermap(cmap, cell_width=0.02, cell_height=0.02):
-    """
-    Resizes the components of a seaborn clustermap object to match the specified cell widths and heights.
+    """Resizes the components of a seaborn clustermap object to match the specified cell widths and heights.
 
-    Parameters:
+    Parameters
+    ----------
     cmap (seaborn.matrix.ClusterGrid): The seaborn clustermap object to reshape.
     cell_width (float, optional): The width of each cell in the heatmap. Default is 0.02.
     cell_height (float, optional): The height of each cell in the heatmap. Default is 0.02.
     """
-
     # Get the number of rows and columns in the heatmap data
     ny, nx = cmap.data2d.shape
 
@@ -28,9 +22,7 @@ def reshape_clustermap(cmap, cell_width=0.02, cell_height=0.02):
 
     # Set the position of the heatmap axes to the new width and height
     hmap_orig_pos = cmap.ax_heatmap.get_position()
-    cmap.ax_heatmap.set_position(
-        [hmap_orig_pos.x0, hmap_orig_pos.y0, hmap_width, hmap_height]
-    )
+    cmap.ax_heatmap.set_position([hmap_orig_pos.x0, hmap_orig_pos.y0, hmap_width, hmap_height])
 
     # Set the position of the column dendrogram axes to the new width and height plus the height of the heatmap axes
     top_dg_pos = cmap.ax_col_dendrogram.get_position()
@@ -40,44 +32,44 @@ def reshape_clustermap(cmap, cell_width=0.02, cell_height=0.02):
 
     # Set the position of the row dendrogram axes to the new width and height plus the width of the heatmap axes
     left_dg_pos = cmap.ax_row_dendrogram.get_position()
-    cmap.ax_row_dendrogram.set_position(
-        [left_dg_pos.x0, left_dg_pos.y0, left_dg_pos.width, hmap_height]
-    )
+    cmap.ax_row_dendrogram.set_position([left_dg_pos.x0, left_dg_pos.y0, left_dg_pos.width, hmap_height])
 
     # If the heatmap has a colorbar, set its position to be below the heatmap axes
     if cmap.ax_cbar:
         cbar_pos = cmap.ax_cbar.get_position()
         hmap_pos = cmap.ax_heatmap.get_position()
-        cmap.ax_cbar.set_position(
-            [cbar_pos.x0, hmap_pos.y1, cbar_pos.width, cbar_pos.height]
-        )
+        cmap.ax_cbar.set_position([cbar_pos.x0, hmap_pos.y1, cbar_pos.width, cbar_pos.height])
+
 
 def save_fig_mfmt(fig, res_dir, filename, fmt=all, plot_provider="mpl", **kwargs):
-    """
-    Save a matplotlib or altair figure in the specified format(s) to the given directory with the given filename.
+    """Save a matplotlib or altair figure in the specified format(s) to the given directory with the given filename.
 
-    Parameters:
+    Parameters
+    ----------
     fig (object): The matplotlib or altair figure to save.
     res_dir (str): The directory in which to save the figure.
     filename (str): The name to use for the figure file.
-    fmt (str): The format in which to save the figure. 
+    fmt (str): The format in which to save the figure.
         Default is "all", which saves the figure in all supported formats.
         Supported formats are "pdf", "svg", "png".
     plot_provider (str): The plotting library used to create the figure.
         Default is "mpl" for matplotlib. "altair" for altair.
     **kwargs: Additional keyword arguments to be passed to the savefig method of matplotlib or the save method of altair.
 
-    Returns:
+    Returns
+    -------
     None
 
-    Raises:
+    Raises
+    ------
     AssertionError: If the specified plot_provider is not supported or if the specified fmt is not supported.
     """
-
     supported_formats = ["pdf", "svg", "png", "all"]
 
-    assert plot_provider in ["mpl", "altair"], 'Plot provider not supported: ' + plot_provider
-    assert fmt in supported_formats, 'Error: format ' + fmt + ' not supported formats [' + ','.join(supported_formats) + ']'
+    assert plot_provider in ["mpl", "altair"], "Plot provider not supported: " + plot_provider
+    assert fmt in supported_formats, (
+        "Error: format " + fmt + " not supported formats [" + ",".join(supported_formats) + "]"
+    )
 
     # Remove the "all" option from the supported_formats list, since it is only used for determining if all formats should be saved
     supported_formats.remove("all")
@@ -87,7 +79,7 @@ def save_fig_mfmt(fig, res_dir, filename, fmt=all, plot_provider="mpl", **kwargs
         for f in supported_formats:
             # Construct and create the full path for the figure file in the current format
             d = Path(res_dir, f)
-            os.makedirs(d, mode = 0o750, exist_ok = True)
+            os.makedirs(d, mode=0o750, exist_ok=True)
 
             # Construct the full path and filename for the figure file in the current format
             fn = Path(d, f"{filename}.{f}")
@@ -102,7 +94,7 @@ def save_fig_mfmt(fig, res_dir, filename, fmt=all, plot_provider="mpl", **kwargs
     else:
         # Construct and create the full path for the figure file in the specified format
         d = Path(res_dir, fmt)
-        os.makedirs(d, mode = 0o750, exist_ok = True)
+        os.makedirs(d, mode=0o750, exist_ok=True)
 
         # Construct the full path and filename for the figure file in the specified format
         fn = Path(d, f"{filename}.{fmt}")

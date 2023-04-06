@@ -44,12 +44,8 @@ count_mat <- as.matrix(read.csv(readCountFile,sep="\t",row.names="gene_symbol"))
 count_mat <- as.data.frame(count_mat)
 allSampleAnno <- read.csv(sampleAnnotationCSV, row.names=1)
 
-<<<<<<< HEAD
-colnames(count_mat) <- NULL
-count_mat[,-1]= round(count_mat[,-1],0) 
-=======
 count_mat[,-1]= round(count_mat[,-1],0)
->>>>>>> 41d7799c1cbab2d4858843615d0960968671c95a
+
 
 design_formula <- as.formula(paste0("~", cond_col, covariate_formula))
 

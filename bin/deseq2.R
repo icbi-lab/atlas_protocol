@@ -46,7 +46,6 @@ allSampleAnno <- read.csv(sampleAnnotationCSV, row.names=1)
 
 count_mat[,-1]= round(count_mat[,-1],0)
 
-
 design_formula <- as.formula(paste0("~", cond_col, covariate_formula))
 
 

@@ -9,5 +9,5 @@
 .. autosummary::
     :toctree: generated
 
-    pl.plot_qc_metrics
+    pp.is_outlier
 ```

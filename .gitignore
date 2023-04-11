@@ -33,4 +33,3 @@ __pycache__/
 # remote kernel files
 rik_kernel-*
 .ipynb_checkpoints
-

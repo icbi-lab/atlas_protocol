@@ -19,13 +19,15 @@
 # ## Hardware requirements
 #
 # For working with up to 1 million cells the absolute minimum will be a workstation with 250GB of RAM and 16 CPU cores.
-# Additionally, we recommend a GPU, as scvi-tools is faster by at least one order of magnitude compared to CPU-only computing.
+# Additionally, we recommend a GPU, as data integration with scvi-tools is faster by at least one order of magnitude compared to CPU-only computing.
 #
 # ## Software prerequisites
 # For the following instructions, we assume you are working on Linux and have set-up the [conda](https://docs.conda.io/en/latest/) package manager and a way of working with [jupyter notebooks](https://jupyter.org/).
 # In case you don't, we recommend setting up [miniforge](https://github.com/conda-forge/miniforge#download) and following the jupyter lab [installation instructions](https://jupyter.org/install).
 #
 # ## Clone the atlas protocol repository
+#
+# You can obtain all notebooks and helper scripts required for this tutorial from GitHub:
 #
 # ```bash
 # git clone https://github.com/icbi-lab/atlas_protocol.git
@@ -34,7 +36,7 @@
 #
 # ## Installing software dependencies
 #
-# All requires software dependencies are declared in the `environment.yml` file.
+# All required software dependencies are declared in the `environment.yml` file.
 # To install all dependencies, you can create a conda environment as follows:
 #
 # ```bash
@@ -47,7 +49,7 @@
 # Alternatively, you can obtain a [singularity container](TODO) with all dependencies pre-installed.
 #
 #
-# ## Obtain and preprocess datasets
+# ## Obtain and preprocess single-cell datasets
 #
 # :::{important}
 # Make sure to choose datasets carefully. Datasets may have very different characteristics, for instance
@@ -71,19 +73,22 @@
 #
 #
 #
-# For this tutorial, we provide three readily processed and annotated example datasets. You can download them from zenodo as follows:
+# For this tutorial, we provide four readily processed example datasets. You can download them from zenodo as follows:
 #
 # ```bash
 # curl TODO
 # ```
 #
-# The example data consists of four datasets: TODO
-
-# %% [markdown]
+# The *Lambrechts* dataset {cite}`Lambrechts2018` has been sequenced on the 10x Genomics 3' v2 platform, the *Maynard* dataset {cite}`maynardTherapyInducedEvolutionHuman2020` using the full-length Smart-seq2 protocol {cite}`picelliSmartseq2SensitiveFulllength2013`.
+# The UKIM-V dataset {cite}`salcherHighresolutionSinglecellAtlas2022a` consists of two batches, both of which have been sequenced on the *BD Rhapsody* platform. All four datasets have been generated from fresh, whole cells and have not been enriched for a particular cell-type.
+#
 # ## Obtain bulk RNA-seq datasets and metadata
 # For the scissor analysis, bulk data needs to be prepared as an R matrix with samples in column names and gene symbols in row names containing untransformed TPM values, stored as `rds` file. The associated clinical data must be a TSV file where one column contains the sample identifiers used as rownames of the TPM matrix.
 #
-# For this protocol, we provide both the TPM matrix and the clinical annotation table from the TCGA LUAD and LUSC cohorts as part of the example data.
+# For this protocol, we provide both the TPM matrix and the clinical annotation table from the TCGA LUAD and LUSC cohorts as part of the example data.  You can download them from zenodo as follows:
 #
+# ```bash
+# curl TODO
+# ```
 
 # %%

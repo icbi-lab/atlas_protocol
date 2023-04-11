@@ -2,16 +2,22 @@
 
 import os
 from pathlib import Path
+from typing import Literal
+
+import seaborn
 
 
-def reshape_clustermap(cmap, cell_width=0.02, cell_height=0.02):
+def reshape_clustermap(cmap: seaborn.matrix.ClusterGrid, cell_width: float = 0.02, cell_height: float = 0.02):
     """Resizes the components of a seaborn clustermap object to match the specified cell widths and heights.
 
     Parameters
     ----------
-    cmap (seaborn.matrix.ClusterGrid): The seaborn clustermap object to reshape.
-    cell_width (float, optional): The width of each cell in the heatmap. Default is 0.02.
-    cell_height (float, optional): The height of each cell in the heatmap. Default is 0.02.
+    cmap
+        The seaborn clustermap object to reshape.
+    cell_width
+        The width of each cell in the heatmap. Default is 0.02.
+    cell_height
+        The height of each cell in the heatmap. Default is 0.02.
     """
     # Get the number of rows and columns in the heatmap data
     ny, nx = cmap.data2d.shape
@@ -41,20 +47,33 @@ def reshape_clustermap(cmap, cell_width=0.02, cell_height=0.02):
         cmap.ax_cbar.set_position([cbar_pos.x0, hmap_pos.y1, cbar_pos.width, cbar_pos.height])
 
 
-def save_fig_mfmt(fig, res_dir, filename, fmt=all, plot_provider="mpl", **kwargs):
+def save_fig_mfmt(
+    fig,
+    res_dir: str,
+    filename: str,
+    fmt: Literal["all", "pdf", "png", "svg"] = "all",
+    plot_provider: Literal["mpl", "altair"] = "mpl",
+    **kwargs,
+) -> None:
     """Save a matplotlib or altair figure in the specified format(s) to the given directory with the given filename.
 
     Parameters
     ----------
-    fig (object): The matplotlib or altair figure to save.
-    res_dir (str): The directory in which to save the figure.
-    filename (str): The name to use for the figure file.
-    fmt (str): The format in which to save the figure.
+    fig
+        The matplotlib or altair figure to save.
+    res_dir
+        The directory in which to save the figure.
+    filename
+        The name to use for the figure file.
+    fmt
+        The format in which to save the figure.
         Default is "all", which saves the figure in all supported formats.
         Supported formats are "pdf", "svg", "png".
-    plot_provider (str): The plotting library used to create the figure.
+    plot_provider
+        The plotting library used to create the figure.
         Default is "mpl" for matplotlib. "altair" for altair.
-    **kwargs: Additional keyword arguments to be passed to the savefig method of matplotlib or the save method of altair.
+    **kwargs
+        Additional keyword arguments to be passed to the savefig method of matplotlib or the save method of altair.
 
     Returns
     -------

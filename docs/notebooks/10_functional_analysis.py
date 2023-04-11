@@ -21,6 +21,7 @@
 
 # %%
 import os
+import urllib.request
 import warnings
 from pathlib import Path
 
@@ -59,6 +60,7 @@ results_dir = "../../data/results/10_functional_analysis"
 tfnet_file = Path(results_dir, "tf_net_dorothea_hs.tsv")
 pwnet_file = Path(results_dir, "pw_net_progeny_hs.tsv")
 msigdb_file = Path(results_dir, "msigdb_hs.tsv")
+cytosig_file = Path(results_dir, "cytosig_signature.tsv")
 
 
 # %% [markdown]
@@ -111,6 +113,19 @@ else:
 
     msigdb.to_csv(msigdb_file, sep="\t", index=False)
 
+
+# %% [markdown]
+# ### CytoSig data
+
+# %%
+# Retrieve CytoSig signature
+if Path(cytosig_file).exists():
+    cytosig_signature = pd.read_csv(cytosig_file, sep="\t")
+else:
+    urllib.request.urlretrieve(
+        "https://github.com/data2intelligence/CytoSig/raw/master/CytoSig/signature.centroid.expand", cytosig_file
+    )
+    cytosig_signature = pd.read_csv(cytosig_file, sep="\t")
 
 # %% [markdown]
 # ## Define contrasts
@@ -632,8 +647,60 @@ for contrast in contrasts:
 # ## CytoSig analysis
 
 # %%
-# load cytokine response signature installed
-signature = Path(os.path.dirname(os.environ["_"]), "signature.centroid")
+cyto_sig = pd.melt(
+    cytosig_signature.rename_axis("target").reset_index(), var_name="source", id_vars=["target"], value_name="weight"
+).reindex(columns=["source", "target", "weight"])
+cyto_sig
 
 # %%
-signature = pd.read_csv(signature, sep="\t", index_col=0)
+# Infer cytokin signaling with consensus
+for contrast in contrasts:
+    print(contrast["name"])
+
+    cs_acts, cs_pvals = dc.run_consensus(mat=contrast["stat_mat"], net=cyto_sig)
+    contrast["cs_acts"] = cs_acts
+    contrast["cs_pvals"] = cs_pvals
+    display(cs_acts)
+
+# %%
+# generate heatmap plot
+for contrast in contrasts:
+    # get acts and pvals
+    pvals = contrast["cs_pvals"]
+    acts = contrast["cs_acts"]
+
+    # select the columns that have significant acts (pval < 0.05)
+    sig_pval_cols = pvals.columns[(pvals < 0.05).any()]
+
+    pvals = pvals[sig_pval_cols]
+    acts = acts[sig_pval_cols]
+
+    # mark significant activities
+    sig_mat = np.where(pvals < 0.05, "●", "")
+
+    with plt.rc_context({"figure.figsize": (10, 10)}):
+        chm = sns.clustermap(
+            acts,
+            annot=sig_mat,
+            annot_kws={"fontsize": 10},
+            center=0,
+            cmap="bwr",
+            linewidth=0.5,
+            cbar_kws={"label": "signaling activity"},
+            vmin=-2,
+            vmax=2,
+            fmt="s",
+            xticklabels=True,
+            figsize=(6, 6),
+        )
+        aps.pl.reshape_clustermap(chm, cell_width=0.05, cell_height=0.05)
+        aps.pl.save_fig_mfmt(
+            chm,
+            res_dir=f"{contrast['res_dir']}/cytokine_signaling/",
+            filename=f"{contrast['name']}_signaling_heatmap",
+            fmt="all",
+            plot_provider="mpl",
+        )
+        plt.show()
+
+# %%

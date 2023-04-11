@@ -6,7 +6,7 @@
 :hidden: true
 :maxdepth: 1
 
-notebooks/before-you-begin.ipynb
+before-you-begin.md
 
 notebooks/01_qc.ipynb
 notebooks/02_seed_annotation.ipynb
@@ -16,7 +16,7 @@ notebooks/05_cell_type_annotation.ipynb
 
 notebooks/09_compositional.ipynb
 
-notebooks/the-next-steps.ipynb
+the-next-steps.md
 
 api.md
 changelog.md

@@ -1,4 +1,6 @@
-.ipynb_checkpoints
+# data directories
+/results
+
 # Temp files
 .DS_Store
 *~
@@ -30,3 +32,5 @@ __pycache__/
 
 # remote kernel files
 rik_kernel-*
+.ipynb_checkpoints
+

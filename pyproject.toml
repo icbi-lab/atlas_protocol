@@ -37,9 +37,9 @@ dev = [
 ]
 doc = [
     "sphinx>=4",
-    "sphinx-book-theme>=1.0.0",
+    "sphinx-book-theme>=1.0.1",
     "myst-nb",
-    "sphinxcontrib-bibtex>=1.0.0",
+    "sphinxcontrib-bibtex>=2.4.2",
     "sphinx-autodoc-typehints",
     # For notebooks
     "ipykernel",
@@ -108,6 +108,8 @@ ignore = [
     "D203",
     # We want docstrings to start immediately after the opening triple quote
     "D213",
+    # common in notebooks
+    "B018"
 ]
 
 [tool.ruff.per-file-ignores]
@@ -116,7 +118,7 @@ ignore = [
 "*/__init__.py" = ["F401"]
 
 [tool.jupytext]
-formats = "ipynb"
+formats = "ipynb,py:percent"
 
 [tool.cruft]
 skip = [

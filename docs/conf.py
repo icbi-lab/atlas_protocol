@@ -92,6 +92,7 @@ intersphinx_mapping = {
     "anndata": ("https://anndata.readthedocs.io/en/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "sccoda": ("https://sccoda.readthedocs.io/en/latest/", None),
+    "seaborn": ("https://seaborn.pydata.org/", None),
 }
 
 # List of patterns, relative to source directory, that match files and

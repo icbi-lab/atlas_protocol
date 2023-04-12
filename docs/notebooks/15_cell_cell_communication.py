@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.4
+#       jupytext_version: 1.14.5
 #   kernelspec:
 #     display_name: atlas_protocol
 #     language: python
@@ -27,6 +27,7 @@
 # %%
 import pandas as pd
 import scanpy as sc
+
 import atlas_protocol_scripts as aps
 
 # %% [markdown]

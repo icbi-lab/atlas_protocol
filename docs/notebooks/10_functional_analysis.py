@@ -835,6 +835,19 @@ for contrast in contrasts:
     )
 
 # %% [markdown]
+# ### Save ORA scores of enriched terms
+#
+# Finally we store the ORA scores of enriched terms in `tsv` format.
+
+# %%
+# save tsv
+for contrast in contrasts:
+    tsv_dir = Path(contrast["res_dir"], "MSigDB", "tsv")
+    os.makedirs(tsv_dir, mode=0o750, exist_ok=True)
+    contrast["ora_scores"].to_csv(f"{tsv_dir}/{contrast['name']}_MSigDB_ORA_scors.tsv", sep="\t")
+
+
+# %% [markdown]
 # ## CytoSig analysis
 #
 # We define enriched cytokine signaling signatures in the tumor cells using the *CytoSig* signature matrix an the `decoupler` consesus scoring function.
@@ -908,3 +921,19 @@ for contrast in contrasts:
             plot_provider="mpl",
         )
         plt.show()
+
+# %% [markdown]
+# ### Save cytokine signaling activity scores and p-values matrix
+#
+# Finally we store the cytokine signaling activity scores and p-values in `tsv` format.
+
+# %%
+# save tsv
+for contrast in contrasts:
+    tsv_dir = Path(contrast["res_dir"], "cytokine_signaling", "tsv")
+    os.makedirs(tsv_dir, mode=0o750, exist_ok=True)
+    contrast["cs_acts"].to_csv(f"{tsv_dir}/{contrast['name']}_CytoSig_acts.tsv", sep="\t")
+    contrast["cs_pvals"].to_csv(f"{tsv_dir}/{contrast['name']}_CytoSig_pvals.tsv", sep="\t")
+
+
+# %%

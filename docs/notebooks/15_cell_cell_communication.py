@@ -22,7 +22,7 @@
 # Initially, the techniques outlined above were developed to evaluate intercellular communication between distinct cell types. To achieve this objective, CellPhoneDB and CellChatDB deploy a permutation test that randomizes cell type labels. While this approach is valuable in comprehending the steady state across different tissues, with the single-cell research domain now embracing perturbation experiments and extensive atlases, it has become necessary to implement methods for assessing varied patterns of intercellular communication. To takle this problem we have incorporated a straightforward yet efficient technique by considering a ligand-receptor pair as potentially perturbed if there is differential expression in at least one of the ligand and receptor. By using differentially expressed ligands/receptors (from comparisons between conditions) as input, we account for pseudoreplication bias and dropouts of lowly expressed genes.
 
 # %% [markdown]
-# ### 1. Import the required libraries
+# ## 1. Import the required libraries
 
 # %%
 import pandas as pd
@@ -31,7 +31,7 @@ import scanpy as sc
 import atlas_protocol_scripts as aps
 
 # %% [markdown]
-# ### 2. Load and sanitise the input data
+# ## 2. Load and sanitise the input data
 
 # %%
 # Define paths
@@ -55,7 +55,7 @@ adata_primary_tumor = adata[(adata.obs["origin"] == "tumor_primary") & (adata.ob
 adata_primary_tumor.obs
 
 # %% [markdown]
-# ### 3. Define the Immune cell types
+# ## 3. Define the Immune cell types
 
 # %%
 # Define immune cell types (to be used for ploting)
@@ -78,7 +78,7 @@ immune_cells = [
 ]
 
 # %% [markdown]
-# ### 4. Perform the cell-to-cell communication analysis
+# ## 4. Perform the cell-to-cell communication analysis
 
 # %%
 # Sanity check
@@ -94,7 +94,7 @@ ccdba = aps.tl._cell2cell.CpdbAnalysis(
 )
 
 # %% [markdown]
-# ### 5. Use the DE results to infer cell-to-cell communications
+# ## 5. Use the DE results to infer cell-to-cell communications
 
 # %%
 # Load in DE results (using LUAD as reference)
@@ -117,7 +117,7 @@ de_res_tumor_cells_luad_lusc
 ccdb_res = ccdba.significant_interactions(de_res_tumor_cells_luad_lusc, max_pvalue=0.1)
 
 # %% [markdown]
-# ### 6. Visualisation
+# ## 6. Visualisation
 
 # %%
 # Load in the results

@@ -25,6 +25,8 @@ To install all dependencies, you can create a conda environment as follows:
 ```bash
 conda env create -n atlas_protocol -f env/environment.yml
 conda activate atlas_protocol
+# install the atlas_protocol package with helper functions
+pip install git+https://github.com/icbi-lab/atlas_protocol.git
 ```
 
 In order to make conda environments work with jupyter notebooks, we suggest installing [nb_conda_kernels](https://github.com/Anaconda-Platform/nb_conda_kernels).

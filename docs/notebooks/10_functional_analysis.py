@@ -13,13 +13,14 @@
 # ---
 
 # %% [markdown]
-# # Functional analysis: progeny / dorothea
+# # Functional analysis: progeny / dorothea / CytoSig
 
 # %%
 # %load_ext autoreload
 # %autoreload 2
 
 # %%
+import logging
 import os
 import urllib.request
 import warnings
@@ -39,6 +40,10 @@ from threadpoolctl import threadpool_limits
 
 import atlas_protocol_scripts as aps
 
+# silence matplotlib logger
+logging.getLogger("matplotlib").setLevel(logging.ERROR)
+
+# silence warnings
 warnings.simplefilter(action="ignore")
 warnings.filterwarnings("ignore")
 
@@ -52,22 +57,27 @@ threadpool_limits(cpus)
 
 # %% [markdown]
 # ## Configure paths
+#
+# * `adata_path`: Path to anndata file
+# * `results_dir`: Path to results directory. Will be created automatically.
 
 # %%
 adata_path = "../../data/input_data_zenodo/atlas-integrated-annotated.h5ad"
+
 results_dir = "../../data/results/10_functional_analysis"
-
-tfnet_file = Path(results_dir, "tf_net_dorothea_hs.tsv")
-pwnet_file = Path(results_dir, "pw_net_progeny_hs.tsv")
-msigdb_file = Path(results_dir, "msigdb_hs.tsv")
-cytosig_file = Path(results_dir, "cytosig_signature.tsv")
-
 
 # %% [markdown]
 # Create results directory
 
 # %%
 os.makedirs(results_dir, mode=0o750, exist_ok=True)
+
+# %%
+# Path to network/model files (will be automatically generated, no need to change)
+tfnet_file = Path(results_dir, "tf_net_dorothea_hs.tsv")
+pwnet_file = Path(results_dir, "pw_net_progeny_hs.tsv")
+msigdb_file = Path(results_dir, "msigdb_hs.tsv")
+cytosig_file = Path(results_dir, "cytosig_signature.tsv")
 
 # %% [markdown]
 # ## Load data
@@ -84,6 +94,7 @@ print(f"Anndata has: {adata.shape[0]} cells and {adata.shape[1]} genes")
 # ### Progeny and Dorothea data
 
 # %%
+# Retrieve Dorothea db (levels A, B, C, only)
 if Path(tfnet_file).exists():
     tfnet = pd.read_csv(tfnet_file, sep="\t")
 else:
@@ -91,6 +102,7 @@ else:
     tfnet.to_csv(tfnet_file, sep="\t", index=False)
 
 # %%
+# Retrieve Progeny db
 if Path(pwnet_file).exists():
     pwnet = pd.read_csv(pwnet_file, sep="\t")
 else:
@@ -103,7 +115,7 @@ else:
 # %%
 # Retrieve MSigDB resource
 if Path(msigdb_file).exists():
-    tfnet = pd.read_csv(msigdb_file, sep="\t")
+    msigdb = pd.read_csv(msigdb_file, sep="\t")
 else:
     msigdb = dc.get_resource("MSigDB")
 
@@ -129,6 +141,14 @@ else:
 
 # %% [markdown]
 # ## Define contrasts
+#
+# Here we define the gene expression contrasts/comparisons for which we to run the functional analyses.
+#
+# `contrasts` is a list of dicts with the following keys:
+#
+# * `name`: contrast name
+# * `condition`: test group
+# * `reference`: reference group
 
 # %%
 contrasts = [
@@ -137,7 +157,7 @@ contrasts = [
 contrasts
 
 # %% [markdown]
-# ### create result directories for each contrast
+# ### Create result directories for each contrast
 
 # %%
 for contrast in contrasts:
@@ -147,12 +167,15 @@ for contrast in contrasts:
 
 # %% [markdown]
 # ### Define cell type class to use
+#
+# Specifiy for which cell type annotation level we want to run the functional analyses
 
 # %%
 cell_type_class = "cell_type_coarse"
 
+# %%
 cell_types = adata.obs[cell_type_class].unique()
-print(f"Cell types in {cell_type_class} annotation:")
+print(f"Cell types in {cell_type_class} annotation:\n")
 for ct in cell_types:
     print(ct)
 
@@ -225,6 +248,11 @@ for contrast in contrasts:
 # %%
 contrasts[0]["de_res"]["T cell"]
 
+# %% [markdown]
+# ### Reformat and concat the deseq2 results for each contrast
+#
+# * Build `stat` matrix `stat_mat`
+
 # %%
 # Concat and build the stat matrix
 for contrast in contrasts:
@@ -239,6 +267,9 @@ for contrast in contrasts:
     )
     contrast["stat_mat"] = stat_mat
     display(stat_mat)
+
+# %% [markdown]
+# * Build `log2FoldChange` matrix `lfc_mat`
 
 # %%
 # Concat and build the log2FoldChange change matrix
@@ -258,6 +289,9 @@ for contrast in contrasts:
     contrast["lfc_mat"] = lfc_mat
     display(lfc_mat)
 
+# %% [markdown]
+# * Build `padj` matrix `fdr_mat`
+
 # %%
 # Concat and build the fdr
 for contrast in contrasts:
@@ -274,7 +308,9 @@ for contrast in contrasts:
     display(fdr_mat)
 
 # %% [markdown]
-# ### Infer pathway activities with consensus
+# ## Infer pathway activities with consensus
+#
+# Run `decoupler` consensus method to infer pathway activities using the `Progeny` models
 
 # %%
 # Infer pathway activities with consensus
@@ -287,6 +323,8 @@ for contrast in contrasts:
 
 # %% [markdown]
 # ### Generate per cell type pathway activity barplots
+#
+# We use the decoupler `plot_barplot` function for plotting the pathway activities of each celltype and save the result in `png, pdf, svg` format.
 
 # %%
 for contrast in contrasts:
@@ -311,6 +349,9 @@ for contrast in contrasts:
 
 # %% [markdown]
 # ### Generate pathway activity heatmap
+#
+# We use the seaborn `clustermap` function to generate a clustered heatmap of the celltype pathway activities and save the result in `png, pdf, svg` format.\
+# Signigficant activity differences are marked with "●"
 
 # %%
 # generate heatmap plot
@@ -344,6 +385,9 @@ for contrast in contrasts:
 
 # %% [markdown]
 # ### Generate target gene expression plots for significant pathways
+#
+# We genereate expression plots for the target genes of pathways with significant activity differences using the DESeq2 `stat` value (y-axis) and the interaction `weight` (x-axis).\
+# The results are stored in `png, pdf, svg` format.
 
 # %% [markdown]
 # Get significant pathways
@@ -408,6 +452,8 @@ for contrast in contrasts:
 
 # %% [markdown]
 # ### Save pathway activity and p-values matrix
+#
+# Finally we store the pathway activity scores and p-values in `tsv` format.
 
 # %%
 # save tsv
@@ -419,7 +465,9 @@ for contrast in contrasts:
 
 
 # %% [markdown]
-# ### Infer transcription factor activities with consensus
+# ## Infer transcription factor activities with consensus
+#
+# Run `decoupler` consensus method to infer transcription factor activities using the `Dorothea` models
 
 # %%
 # Infer transcription factor activities with consensus
@@ -433,6 +481,8 @@ for contrast in contrasts:
 
 # %% [markdown]
 # ### Generate per cell type transcription factor activity barplots
+#
+# We use the decoupler `plot_barplot` function for plotting the transcription factor activities of each celltype and save the result in `png, pdf, svg` format.
 
 # %%
 for contrast in contrasts:
@@ -457,6 +507,9 @@ for contrast in contrasts:
 
 # %% [markdown]
 # ### Generate transcription factor activity heatmap
+#
+# We use the seaborn `clustermap` function to generate a clustered heatmap of the celltype transcription factor activities and save the result in `png, pdf, svg` format.\
+# Signigficant activity differences are marked with "●"
 
 # %%
 # generate heatmap plot
@@ -502,6 +555,11 @@ for contrast in contrasts:
 
 # %% [markdown]
 # ### Volcano plots of expression of target genes from transcription factors of interest
+#
+# We genereate volcano plots for the target genes of selected transcription factors with significant activity differences using the DESeq2 `log2foldChange` (x-axis) and `padj` (y-axis) values.\
+# For each transcription factor of interest a panel of celltype specific volcano plots will be created. The results are stored in `png, pdf, svg` format.
+#
+# `tf_of_interest`: List of transcription factors in which we are interested and for whose target genes we want to generate a volcano plot
 
 # %%
 # Define transcription factors of interest
@@ -570,7 +628,23 @@ for contrast in contrasts:
         )
 
 # %% [markdown]
+# ### Save transcription factor activity and p-values matrix
+#
+# Finally we store the transcription factor activity scores and p-values in `tsv` format.
+
+# %%
+# save tsv
+for contrast in contrasts:
+    tsv_dir = Path(contrast["res_dir"], "transcription_factors", "tsv")
+    os.makedirs(tsv_dir, mode=0o750, exist_ok=True)
+    contrast["tf_acts"].to_csv(f"{tsv_dir}/{contrast['name']}_transcription_factor_acts.tsv", sep="\t")
+    contrast["tf_pvals"].to_csv(f"{tsv_dir}/{contrast['name']}_transcription_factor_pvals.tsv", sep="\t")
+
+
+# %% [markdown]
 # ## Infer enrichment of biological terms with ORA using significant differential expressed genes
+#
+# We can utilize MSigDB to assign biological terms to the differentially expressed genes. In this case, we will employ the `get_ora_df` method from decoupler.
 
 # %%
 # convert deseq2 FDR results to long format
@@ -588,6 +662,8 @@ for contrast in contrasts:
 
 # %% [markdown]
 # ### Run ORA
+#
+# We set 0 ORA p-values to min(p-value)/10 to avoid inf values when log transforming while calculating the ora_score
 
 # %%
 # Infer enrichment with ora using significant deg
@@ -600,18 +676,28 @@ for contrast in contrasts:
         source="geneset",
         target="genesymbol",
     )
+
+    # set enrichment p-values 0 to min/10 p-values to avoid inf values when log transforming
+    enr_pvals.values[enr_pvals.values == 0] = np.min(enr_pvals.values[enr_pvals.values != 0]) / 10
+
     contrast["enr_pvals"] = enr_pvals
     display(enr_pvals)
 
 # %% [markdown]
-# ### Genrate MSigDB heatmap from ORA scores
+# ### Generate MSigDB heatmap from ORA scores
+#
+# We use the seaborn `heatmap` function to generate a heatmap of the biological terms assigned by ORA to the different celltypes and save the result in `png, pdf, svg` format.\
+# Signigficantly overrepresented terms are marked with "●"
+# * ORA score is -log10(ora p-value)
 
 # %%
 # Plot heatmap of ORA result
 for contrast in contrasts:
     enr_pvals = contrast["enr_pvals"]
+
     # calculate ORA score = -log10(ora_pval)
-    ora_scores = -np.log10(enr_pvals + 1e-10)
+    ora_scores = -np.log10(enr_pvals)
+    contrast["ora_scores"] = ora_scores
 
     # mark significant activities
     sig_mat = np.where(enr_pvals < 0.05, "●", "")
@@ -644,13 +730,127 @@ for contrast in contrasts:
     plt.show()
 
 # %% [markdown]
-# ## CytoSig analysis
+# ### Visualize the most enriched terms as barplot
+#
+# We use the decoupler `plot_barplot` function to generate barplots of the most enriched biological and save the result in `png, pdf, svg` format.
+# * `top_n`: top n cell types to generate barplots for. Cell types are sorted by the highest ORA score
 
 # %%
+top_n = 6
+
+# %%
+# show top n celltypes
+np.max(contrast["ora_scores"].T).sort_values().tail(top_n)
+
+# %%
+for contrast in contrasts:
+    # get top n celltypes
+    top_celltypes = np.max(contrast["ora_scores"].T).sort_values().tail(top_n).index.values
+
+    with plt.rc_context({"figure.figsize": (8, 3)}):
+        for ct in top_celltypes:
+            bp = dc.plot_barplot(contrast["ora_scores"], ct, top=15, vertical=True, return_fig=True, figsize=[8, 3])
+            plt.title(ct)
+            plt.xlabel("ORA score")
+            plt.tight_layout()
+
+            if bp is not None:
+                ct_fname = ct.replace(" ", "_").replace("/", "_")
+                aps.pl.save_fig_mfmt(
+                    bp,
+                    res_dir=f"{contrast['res_dir']}/MSigDB/",
+                    filename=f"{contrast['name']}_top_terms_barplot_{ct_fname}",
+                    fmt="all",
+                    plot_provider="mpl",
+                )
+            else:
+                print("No plot for: " + contrast["name"] + ":" + ct)
+
+
+# %% [markdown]
+# ### Generate volcano plots for the most enriched term of the top n celltypes
+#
+# * `top_n`: number of celltypes to generate volcano plot of the most enriched term
+
+# %%
+top_n = 6
+
+# %%
+# show top n celltypes
+np.max(contrast["ora_scores"].T).sort_values().tail(top_n)
+
+# %%
+for contrast in contrasts:
+    logFC = contrast["lfc_mat"]
+    pvals = contrast["fdr_mat"]
+
+    # get top n celltypes
+    top_celltypes = np.max(contrast["ora_scores"].T).sort_values().tail(top_n).index.values
+
+    # get top term of each celltype
+    top_term = {}
+    for ct in top_celltypes:
+        top_term[ct] = contrast["ora_scores"].loc[ct].idxmax()
+
+    # Calculate nrows based on ncol
+    ncols = 3 if top_n >= 3 else n_sig
+    nrows = int(np.ceil(top_n / ncols))
+
+    # Initialize the figure panel
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(ncols * 6, nrows * 4))
+    empty_axs = axs.flatten()
+    axs = [[{"ct": t, "term": top_term[t]}, ax] for t, ax in zip(top_term, axs.flatten())]
+
+    for t, ax in axs:
+        dc.plot_volcano(
+            logFCs,
+            pvals,
+            t["ct"],
+            name=t["term"],
+            net=msigdb,
+            top=10,
+            sign_thr=0.1,
+            lFCs_thr=0.5,
+            source="geneset",
+            target="genesymbol",
+            weight=None,
+            return_fig=False,
+            ax=ax,
+        )
+
+    # set empty axes invisible
+    for ax in range(len(axs), len(empty_axs)):
+        empty_axs[ax].set_visible(False)
+
+    plt.tight_layout()
+    plt.show()
+
+    # Save figure
+    aps.pl.save_fig_mfmt(
+        fig,
+        res_dir=f"{contrast['res_dir']}/MSigDB/",
+        filename=f"{contrast['name']}_top_terms_target_expression",
+        fmt="all",
+        plot_provider="mpl",
+    )
+
+# %% [markdown]
+# ## CytoSig analysis
+#
+# We define enriched cytokine signaling signatures in the tumor cells using the *CytoSig* signature matrix an the `decoupler` consesus scoring function.
+
+# %% [markdown]
+# First we reformat the signature matrix into long format
+
+# %%
+# reformat the signature matrix
 cyto_sig = pd.melt(
     cytosig_signature.rename_axis("target").reset_index(), var_name="source", id_vars=["target"], value_name="weight"
 ).reindex(columns=["source", "target", "weight"])
 cyto_sig
+
+# %% [markdown]
+# Run the decoupler consensus scoring function using the DESeq2 `stat` values and the `CytoSig` net
 
 # %%
 # Infer cytokin signaling with consensus
@@ -661,6 +861,12 @@ for contrast in contrasts:
     contrast["cs_acts"] = cs_acts
     contrast["cs_pvals"] = cs_pvals
     display(cs_acts)
+
+# %% [markdown]
+# ### Generate signaling activity heatmap
+#
+# We use the seaborn `clustermap` function to generate a clustered heatmap of the celltype signaling activities and save the result in `png, pdf, svg` format.\
+# Signigficant signaling activity differences are marked with "●"
 
 # %%
 # generate heatmap plot
@@ -702,5 +908,3 @@ for contrast in contrasts:
             plot_provider="mpl",
         )
         plt.show()
-
-# %%

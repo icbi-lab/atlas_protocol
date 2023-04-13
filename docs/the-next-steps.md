@@ -15,7 +15,7 @@ ontology terms (e.g. the "cell ontology" for cell-types).
 ## Sharing the model
 
 The integration with scANVI generated a pre-trained model that can be used to project additional data onto
-the atlas using scArches as we have shown in {ref}`scarches`. To enable others to use this functionality
+the atlas using scArches as we have shown in scarches <!-- TODO {ref}`scarches` -->. To enable others to use this functionality
 it is required that you share the scvi model and the AnnData object that was used to generate it. The pre-trained
 model can be shared via the [scvi model hub](https://huggingface.co/scvi-tools) on [huggingface](https://huggingface.co/).
 For more details, see the [scvi-hub upload tutorial](https://docs.scvi-tools.org/en/stable/tutorials/notebooks/scvi_hub_upload_and_large_files.html#).

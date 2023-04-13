@@ -1,3 +1,5 @@
+# Before you begin
+
 ## Hardware requirements
 
 For working with up to 1 million cells the absolute minimum will be a workstation with 250GB of RAM and 16 CPU cores.
@@ -31,7 +33,7 @@ pip install git+https://github.com/icbi-lab/atlas_protocol.git
 
 In order to make conda environments work with jupyter notebooks, we suggest installing [nb_conda_kernels](https://github.com/Anaconda-Platform/nb_conda_kernels).
 
-Alternatively, you can obtain a [singularity container](TODO) with all dependencies pre-installed.
+Alternatively, you can obtain a singluarty container <!-- [singularity container](TODO) --> with all dependencies pre-installed.
 
 ## Obtain and preprocess single-cell datasets
 
@@ -54,7 +56,8 @@ Raw data preprocessing is beyond the scope of this tutorial. Please refer to the
 
 -   The [nf-core/scrnaseq](https://nf-co.re/scrnaseq) workflow for single-cell RNA-seq preprocessing
 -   The [Raw data processing](https://www.sc-best-practices.org/introduction/raw_data_processing.html) chapter of the single-cell best practice book {cite}`heumosBestPracticesSinglecell2023`.
-    :::
+
+:::
 
 For this tutorial, we provide four readily processed example datasets. You can download them from zenodo as follows:
 

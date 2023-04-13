@@ -109,7 +109,8 @@ ignore = [
     # We want docstrings to start immediately after the opening triple quote
     "D213",
     # common in notebooks
-    "B018"
+    "B018",
+    "E402",
 ]
 
 [tool.ruff.per-file-ignores]

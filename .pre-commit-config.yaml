@@ -57,6 +57,7 @@ repos:
             args: [--fix=lf]
           - id: trailing-whitespace
           - id: check-case-conflict
+          - id: check-merge-conflict
     - repo: local
       hooks:
           - id: forbid-to-commit

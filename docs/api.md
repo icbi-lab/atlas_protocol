@@ -15,6 +15,5 @@
     tl.scissor_wilcoxon_test
     tl.CpdbAnalysis
 
-    pl.plot_qc_metrics
     pl.significance_heatmap
 ```

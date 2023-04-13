@@ -9,11 +9,11 @@
 .. autosummary::
     :toctree: generated
 
-    pl.plot_qc_metrics
-    pl.significance_heatmap
+    pp.is_outlier
 
     tl.fdr_correction
+    tl.scissor_wilcoxon_test
     tl.CpdbAnalysis
 
-    tl.scissor_wilcoxon_test
+    pl.significance_heatmap
 ```

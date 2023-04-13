@@ -111,7 +111,6 @@ html_static_path = ["_static"]
 html_title = project_name
 html_css_files = ["css/custom.css"]
 
-
 html_theme_options = {
     "repository_url": repository_url,
     "use_repository_button": True,

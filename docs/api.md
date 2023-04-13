@@ -14,4 +14,6 @@
 
     tl.fdr_correction
     tl.CpdbAnalysis
+
+    tl.scissor_wilcoxon_test
 ```

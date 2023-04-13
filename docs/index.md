@@ -13,6 +13,8 @@ notebooks/04_integrate_scvi.ipynb
 notebooks/05_cell_type_annotation.ipynb
 
 notebooks/09_compositional.ipynb
+notebooks/15_cell_cell_communication.ipynb
+notebooks/10_bulk_integration.ipynb
 
 api.md
 changelog.md

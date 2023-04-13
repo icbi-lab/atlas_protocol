@@ -74,3 +74,11 @@ For this protocol, we provide both the TPM matrix and the clinical annotation ta
 ```bash
 curl TODO
 ```
+
+## Obtain reference genome GTF file
+
+For remapping gene symbols, you need a GTF file with genome annotations.
+
+```bash
+curl TODO
+```

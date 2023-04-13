@@ -10,4 +10,6 @@
     :toctree: generated
 
     pl.plot_qc_metrics
+
+    tl.scissor_wilcoxon_test
 ```

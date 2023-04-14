@@ -10,6 +10,9 @@
 A computational protocol for atlas-level data integration, downstream analysis and linking with phenotypic information
 from bulk RNA-seq data as performed in [Salcher et al. (2022)](<https://www.cell.com/cancer-cell/fulltext/S1535-6108(22)00499-8>).
 
+> **Warning**: This repository is currently under active development. This means, some parts are still incomplete
+> and there are probably still a lot of mistakes.
+
 ## Getting started
 
 This repository consists of two parts:

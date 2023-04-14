@@ -7,6 +7,13 @@ dependencies:
     - ipykernel
     - ipython
     - pip
+    - r-conflicted
+    - r-docopt
+    - r-readxl
+    - bioconductor-singlecellexperiment
+    - r-readr
+    - r-stringr
+    - r-ggplot2
     - pip:
           - scanpy
           - leidenalg

@@ -28,6 +28,7 @@ release = info["Version"]
 
 bibtex_bibfiles = ["references.bib"]
 bibtex_reference_style = "author_year"
+bibtex_default_style = "plain"
 templates_path = ["_templates"]
 nitpicky = True  # Warn about broken links
 needs_sphinx = "4.0"
@@ -93,6 +94,7 @@ intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
     "sccoda": ("https://sccoda.readthedocs.io/en/latest/", None),
     "seaborn": ("https://seaborn.pydata.org/", None),
+    "pandas": ("https://pandas.pydata.org/docs/", None),
 }
 
 # List of patterns, relative to source directory, that match files and
@@ -110,7 +112,6 @@ html_theme = "sphinx_book_theme"
 html_static_path = ["_static"]
 html_title = project_name
 html_css_files = ["css/custom.css"]
-
 
 html_theme_options = {
     "repository_url": repository_url,

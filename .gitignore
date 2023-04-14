@@ -1,5 +1,6 @@
 # data directories
 /results
+scissor.RData
 
 # Temp files
 .DS_Store

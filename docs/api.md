@@ -1,5 +1,32 @@
 # API
 
+## Preprocessing
+
+```{eval-rst}
+.. module:: atlas_protocol_scripts.pp
+.. currentmodule:: atlas_protocol_scripts
+
+.. autosummary::
+    :toctree: generated
+
+    pp.is_outlier
+```
+
+## Tools
+
+```{eval-rst}
+.. module:: atlas_protocol_scripts.tl
+.. currentmodule:: atlas_protocol_scripts
+
+.. autosummary::
+    :toctree: generated
+
+    tl.fdr_correction
+    tl.scissor_wilcoxon_test
+    tl.CpdbAnalysis
+
+```
+
 ## Plotting
 
 ```{eval-rst}
@@ -12,4 +39,5 @@
     pl.plot_qc_metrics
     pl.reshape_clustermap
     pl.save_fig_mfmt
+    pl.significance_heatmap
 ```

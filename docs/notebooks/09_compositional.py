@@ -22,7 +22,7 @@
 # consequence, the abundance of all other cell-types will be decreased, since the overall number of
 # cells profiled is limited. On top of that, cell proportions are not represented in an unbiased manner
 # in scRNA-seq data, as, depending on the protocol, different cell-types are captured with different
-# efficienies {cite}`Lambrechts2018, salcherHighresolutionSinglecellAtlas2022a`.
+# efficiencies {cite}`Lambrechts2018, salcherHighresolutionSinglecellAtlas2022a`.
 #
 # :::{note}
 # Several alternative methods are available for comparing compositional data. scCODA
@@ -30,7 +30,7 @@
 # It requires the definition of a reference cell-type that is assumed to
 # be unchanged between conditions. tascCODA {cite}`ostnerTascCODABayesianTreeAggregated2021` is an extension of the scCODA model that additionally takes the hierarchical relationships of cell lineages into account. Propeller {cite}`phipsonPropellerTestingDifferences2022a` uses a log-linear model to model cell-type proportions and was demonstrated to have high statistical power with few biological replicates. Finally, sccomp {cite}`mangiolaRobustDifferentialComposition2022` provides a highly-flexible statistical framework that considers the presence of outliers and models group-specific variability of cell-type proportions.
 #
-# Another group of tools work independent of discrete cell-types and are useful for finding more
+# Another group of tools works independent of discrete cell-types and are useful for finding more
 # subtle changes in functional states based on the cell × cell neighborhood graph. DA-seq {cite}`zhaoDetectionDifferentiallyAbundant2021`
 # computes a differential abundance (DA)-score for each cell, based on the prevalence of conditions
 # in neighborhoods of multiple sizes using a logistic regression classifier. Similarly, Milo {cite}`dannDifferentialAbundanceTesting2022` tests

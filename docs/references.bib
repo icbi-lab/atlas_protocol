@@ -132,3 +132,187 @@
   langid = {english},
   keywords = {Computational biology and bioinformatics,Computational models}
 }
+@ARTICLE{Liberzon2015,
+  title     = "The Molecular Signatures Database ({MSigDB}) hallmark gene set
+               collection",
+  author    = "Liberzon, Arthur and Birger, Chet and Thorvaldsd{\'o}ttir, Helga
+               and Ghandi, Mahmoud and Mesirov, Jill P and Tamayo, Pablo",
+  abstract  = "The Molecular Signatures Database (MSigDB) is one of the most
+               widely used and comprehensive databases of gene sets for
+               performing gene set enrichment analysis. Since its creation,
+               MSigDB has grown beyond its roots in metabolic disease and
+               cancer to include >10,000 gene sets. These better represent a
+               wider range of biological processes and diseases, but the
+               utility of the database is reduced by increased redundancy
+               across, and heterogeneity within, gene sets. To address this
+               challenge, here we use a combination of automated approaches and
+               expert curation to develop a collection of ``hallmark'' gene
+               sets as part of MSigDB. Each hallmark in this collection
+               consists of a ``refined'' gene set, derived from multiple
+               ``founder'' sets, that conveys a specific biological state or
+               process and displays coherent expression. The hallmarks
+               effectively summarize most of the relevant information of the
+               original founder sets and, by reducing both variation and
+               redundancy, provide more refined and concise inputs for gene set
+               enrichment analysis.",
+  journal   = "Cell Syst.",
+  publisher = "Elsevier BV",
+  volume    =  1,
+  number    =  6,
+  pages     = "417--425",
+  month     =  dec,
+  year      =  2015,
+  keywords  = "gene expression; gene set enrichment analysis; gene sets",
+  copyright = "http://www.elsevier.com/open-access/userlicense/1.0/",
+  language  = "en"
+}
+@ARTICLE{Garcia-Alonso2019,
+  title     = "Benchmark and integration of resources for the estimation of
+               human transcription factor activities",
+  author    = "Garcia-Alonso, Luz and Holland, Christian H and Ibrahim, Mahmoud
+               M and Turei, Denes and Saez-Rodriguez, Julio",
+  abstract  = "The prediction of transcription factor (TF) activities from the
+               gene expression of their targets (i.e., TF regulon) is becoming
+               a widely used approach to characterize the functional status of
+               transcriptional regulatory circuits. Several strategies and data
+               sets have been proposed to link the target genes likely
+               regulated by a TF, each one providing a different level of
+               evidence. The most established ones are (1) manually curated
+               repositories, (2) interactions derived from ChIP-seq binding
+               data, (3) in silico prediction of TF binding on gene promoters,
+               and (4) reverse-engineered regulons from large gene expression
+               data sets. However, it is not known how these different sources
+               of regulons affect the TF activity estimations and, thereby,
+               downstream analysis and interpretation. Here we compared the
+               accuracy and biases of these strategies to define human TF
+               regulons by means of their ability to predict changes in TF
+               activities in three reference benchmark data sets. We assembled
+               a collection of TF-target interactions for 1541 human TFs and
+               evaluated how different molecular and regulatory properties of
+               the TFs, such as the DNA-binding domain, specificities, or mode
+               of interaction with the chromatin, affect the predictions of TF
+               activity. We assessed their coverage and found little overlap on
+               the regulons derived from each strategy and better performance
+               by literature-curated information followed by ChIP-seq data. We
+               provide an integrated resource of all TF-target interactions
+               derived through these strategies, with confidence scores, as a
+               resource for enhanced prediction of TF activities.",
+  journal   = "Genome Res.",
+  publisher = "Cold Spring Harbor Laboratory",
+  volume    =  29,
+  number    =  8,
+  pages     = "1363--1375",
+  month     =  aug,
+  year      =  2019,
+  language  = "en"
+}
+@ARTICLE{Badia-i-Mompel2022,
+  title     = "decoupleR: ensemble of computational methods to infer biological
+               activities from omics data",
+  author    = "Badia-I-Mompel, Pau and V{\'e}lez Santiago, Jes{\'u}s and
+               Braunger, Jana and Geiss, Celina and Dimitrov, Daniel and
+               M{\"u}ller-Dott, Sophia and Taus, Petr and Dugourd, Aurelien and
+               Holland, Christian H and Ramirez Flores, Ricardo O and
+               Saez-Rodriguez, Julio",
+  abstract  = "Summary: Many methods allow us to extract biological activities
+               from omics data using information from prior knowledge
+               resources, reducing the dimensionality for increased statistical
+               power and better interpretability. Here, we present decoupleR, a
+               Bioconductor and Python package containing computational methods
+               to extract these activities within a unified framework.
+               decoupleR allows us to flexibly run any method with a given
+               resource, including methods that leverage mode of regulation and
+               weights of interactions, which are not present in other
+               frameworks. Moreover, it leverages OmniPath, a meta-resource
+               comprising over 100 databases of prior knowledge. Using
+               decoupleR, we evaluated the performance of methods on
+               transcriptomic and phospho-proteomic perturbation experiments.
+               Our findings suggest that simple linear models and the consensus
+               score across top methods perform better than other methods at
+               predicting perturbed regulators. Availability and
+               implementation: decoupleR's open-source code is available in
+               Bioconductor
+               (https://www.bioconductor.org/packages/release/bioc/html/decoupleR.html)
+               for R and in GitHub (https://github.com/saezlab/decoupler-py)
+               for Python. The code to reproduce the results is in GitHub
+               (https://github.com/saezlab/decoupleR\_manuscript) and the data
+               in Zenodo (https://zenodo.org/record/5645208). Supplementary
+               information: Supplementary data are available at Bioinformatics
+               Advances online.",
+  journal   = "Bioinform. Adv.",
+  publisher = "Oxford University Press (OUP)",
+  volume    =  2,
+  number    =  1,
+  pages     = "vbac016",
+  month     =  mar,
+  year      =  2022,
+  copyright = "https://creativecommons.org/licenses/by/4.0/",
+  language  = "en"
+}
+
+@ARTICLE{Schubert2018,
+  title    = "Perturbation-response genes reveal signaling footprints in cancer
+              gene expression",
+  author   = "Schubert, Michael and Klinger, Bertram and Kl{\"u}nemann, Martina
+              and Sieber, Anja and Uhlitz, Florian and Sauer, Sascha and
+              Garnett, Mathew J and Bl{\"u}thgen, Nils and Saez-Rodriguez,
+              Julio",
+  abstract = "Aberrant cell signaling can cause cancer and other diseases and
+              is a focal point of drug research. A common approach is to infer
+              signaling activity of pathways from gene expression. However,
+              mapping gene expression to pathway components disregards the
+              effect of post-translational modifications, and downstream
+              signatures represent very specific experimental conditions. Here
+              we present PROGENy, a method that overcomes both limitations by
+              leveraging a large compendium of publicly available perturbation
+              experiments to yield a common core of Pathway RespOnsive GENes.
+              Unlike pathway mapping methods, PROGENy can (i) recover the
+              effect of known driver mutations, (ii) provide or improve strong
+              markers for drug indications, and (iii) distinguish between
+              oncogenic and tumor suppressor pathways for patient survival.
+              Collectively, these results show that PROGENy accurately infers
+              pathway activity from gene expression in a wide range of
+              conditions.",
+  journal  = "Nat. Commun.",
+  volume   =  9,
+  number   =  1,
+  pages    = "20",
+  month    =  jan,
+  year     =  2018,
+  language = "en"
+}
+@ARTICLE{Jiang2021,
+  title     = "Systematic investigation of cytokine signaling activity at the
+               tissue and single-cell levels",
+  author    = "Jiang, Peng and Zhang, Yu and Ru, Beibei and Yang, Yuan and Vu,
+               Trang and Paul, Rohit and Mirza, Amer and Altan-Bonnet,
+               Gr{\'e}goire and Liu, Lingrui and Ruppin, Eytan and Wakefield,
+               Lalage and Wucherpfennig, Kai W",
+  abstract  = "Cytokines are critical for intercellular communication in human
+               health and disease, but the investigation of cytokine signaling
+               activity has remained challenging due to the short half-lives of
+               cytokines and the complexity/redundancy of cytokine functions.
+               To address these challenges, we developed the Cytokine Signaling
+               Analyzer (CytoSig; https://cytosig.ccr.cancer.gov/ ), providing
+               both a database of target genes modulated by cytokines and a
+               predictive model of cytokine signaling cascades from
+               transcriptomic profiles. We collected 20,591 transcriptome
+               profiles for human cytokine, chemokine and growth factor
+               responses. This atlas of transcriptional patterns induced by
+               cytokines enabled the reliable prediction of signaling
+               activities in distinct cell populations in infectious diseases,
+               chronic inflammation and cancer using bulk and single-cell
+               transcriptomic data. CytoSig revealed previously unidentified
+               roles of many cytokines, such as BMP6 as an anti-inflammatory
+               factor, and identified candidate therapeutic targets in human
+               inflammatory diseases, such as CXCL8 for severe coronavirus
+               disease 2019.",
+  journal   = "Nat. Methods",
+  publisher = "Springer Science and Business Media LLC",
+  volume    =  18,
+  number    =  10,
+  pages     = "1181--1191",
+  month     =  oct,
+  year      =  2021,
+  language  = "en"
+}

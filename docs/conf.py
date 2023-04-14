@@ -28,6 +28,7 @@ release = info["Version"]
 
 bibtex_bibfiles = ["references.bib"]
 bibtex_reference_style = "author_year"
+bibtex_default_style = "plain"
 templates_path = ["_templates"]
 nitpicky = True  # Warn about broken links
 needs_sphinx = "4.0"

@@ -6,4 +6,3 @@ __all__ = ["plot_qc_metrics", "reshape_clustermap", "save_fig_mfmt"]
 from ._significance_heatmap import significance_heatmap
 
 __all__ = ["significance_heatmap"]
-

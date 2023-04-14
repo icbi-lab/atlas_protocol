@@ -1,0 +1,11 @@
+diff a/pyproject.toml b/pyproject.toml	(rejected hunks)
+@@ -112,6 +112,9 @@ ignore = [
+     "D213",
+ ]
+ 
++[tool.ruff.pydocstyle]
++convention = "numpy"
++
+ [tool.ruff.per-file-ignores]
+ "docs/*" = ["I"]
+ "tests/*" = ["D"]

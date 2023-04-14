@@ -9,6 +9,7 @@
 # ---
 
 # %% [markdown]
+# (data_integration)=
 # # Integrate data and perform doublet detection
 
 # %%

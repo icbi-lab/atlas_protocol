@@ -13,15 +13,15 @@
 # ---
 
 # %% [markdown]
-# # cell-type annotation of "seed" datasets
+# # Cell-type annotation of "seed" datasets
 #
-# scVI and scANVI are variational autoencoders that embed the single-cell expression data into a low-dimensional latent space, while removing batch effects. This is what we will be doing in chapter {ref}`data-integration`. While scVI is an unsupervised method that only considers the count data, scANVI is a "semi-supervised" data that takes into account known cell-type labels of one or multiple datasets.
+# scVI and scANVI are variational autoencoders that embed the single-cell expression data into a low-dimensional latent space, while removing batch effects. This is what we will be doing in chapter {ref}`data_integration`. While scVI is an unsupervised method that only considers the count data, scANVI is a "semi-supervised" data that takes into account known cell-type labels of one or multiple datasets.
 #
-# In an independent benchmark, the semi-supervised variant scANVI has outperformed scVI and other methods for atlas-level data integration {cite}`TODO`.
+# In an independent benchmark, the semi-supervised variant scANVI has outperformed scVI and other methods for atlas-level data integration {cite}`lueckenBenchmarkingAtlaslevelData2022`.
 #
 # In order to leverage the scANVI algorithm for building the atlas, we are going to prepare cell-type labels for two datasets with very different characteristics:
 #  * `Lambrechts_Thienpont_2018_6653`, which has been sequenced using the dropblet-based, UMI-corrected 10x Genomics 3' v2 protocol
-#  * `Maynard_Bivona_2020`, which has been sequenced using the well-based full-length Smart-seq2 protocol {cite}`TODO`.
+#  * `Maynard_Bivona_2020`, which has been sequenced using the well-based full-length Smart-seq2 protocol {cite}`picelliSmartseq2SensitiveFulllength2013`.
 
 # %% [markdown]
 # ## 1. Import the required libraries

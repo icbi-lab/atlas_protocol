@@ -68,7 +68,9 @@ register(MulticoreParam(workers = n_cpus))
 
 # Reading the Annotation sample csv file
 sampleAnno <- read_csv(sampleAnno_path)
-rownames(sampleAnno) <- sampleAnno$index
+sampleAnno$sample <- sampleAnno$index
+sampleAnno <- sampleAnno[,-1]
+rownames(sampleAnno) <- sampleAnno$sample
 
 # Reading the Count matrix tsv file
 count_mat <- read_csv(count_mat_path)
@@ -77,11 +79,7 @@ count_mat <- count_mat |>
   column_to_rownames("gene_id") |>
   round()
 
-gene_id <- count_mat$gene_id
-count_mat <- count_mat[,-1]
-rownames(count_mat) <-  gene_id
-
-
+# Check if names are the same
 if (!all(rownames(sampleAnno) %in% colnames(count_mat))) {
   print('Row names in sample annotation and column names in count matrix are not the same')
   break
@@ -94,19 +92,19 @@ dds <- DESeqDataSetFromMatrix(countData = round(count_mat),
                               colData = sampleAnno,
                               design = design_formula)
 
-## keep only genes where  >= 10 reads per sample condition in total
+## Keep only genes where  >= 10 reads per sample condition in total
 keep <- rowSums(counts(collapseReplicates(dds, dds[[cond_col]]))) >= 10
 dds <- dds[keep, ]
 
 # run DESeq
-n_cpus = 6
 dds.res<- DESeq(dds, parallel = (n_cpus > 1))
 
+# Define contrast names
 contrasts = list(c(cond_col, c1, c2))
 names(contrasts) = sprintf("%s_vs_%s", c1, c2)
-### IHW
 
-# use of IHW for p value adjustment of DESeq2 results
+### IHW
+# Use of IHW for p value adjustment of DESeq2 results
 resIHW = lapply(names(contrasts), function(name) {
   contrast = contrasts[[name]]
   results(dds.res, filterFun = ihw, contrast = contrast) |>

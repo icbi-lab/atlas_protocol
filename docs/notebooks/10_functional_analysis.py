@@ -13,7 +13,22 @@
 # ---
 
 # %% [markdown]
-# # Functional analysis: progeny / dorothea / CytoSig
+# # Functional analysis: PROGENy / DoRothEA / CytoSig
+#
+#
+# To facilitate the interpretation of scRNA-seq gene expression readouts and their differences across conditions we can summarize the information
+# and infer pathway activities from prior knowledge.
+#
+# In this notebook we use `decoupler` {cite}`Badia-i-Mompel2022` a tool that contains different statistical methods to extract biological activities from omics data using prior knowledge.
+# We run the method on the results from the differential gene expression analysis that compared scRNAseq data from LUAD and LUSC using celltype specific
+# pseudo-bulk data.
+#
+# We infer activities of the following types:
+#
+# * Pathways from PROGENy {cite}`Schubert2018`
+# * Transcription factors from DoRothEA {cite}`Garcia-Alonso2019`
+# * Molecular Signatures (MSigDB) {cite}`Liberzon2015`
+# * Cytokine signaling (CytoSig) {cite}`Jiang2021`
 
 # %%
 # %load_ext autoreload
@@ -91,7 +106,7 @@ adata = sc.read_h5ad(adata_path)
 print(f"Anndata has: {adata.shape[0]} cells and {adata.shape[1]} genes")
 
 # %% [markdown]
-# ### Progeny and Dorothea data
+# ### PROGENy and DoRothEA data
 
 # %%
 # Retrieve Dorothea db (levels A, B, C, only)
@@ -310,7 +325,8 @@ for contrast in contrasts:
 # %% [markdown]
 # ## Infer pathway activities with consensus
 #
-# Run `decoupler` consensus method to infer pathway activities using the `Progeny` models
+# Run `decoupler` consensus method to infer pathway activities from the DESeq2 result using the `PROGENy` models.\
+# We use the obtained gene level `t-value` statistics stored in `stat`.
 
 # %%
 # Infer pathway activities with consensus
@@ -386,7 +402,7 @@ for contrast in contrasts:
 # %% [markdown]
 # ### Generate target gene expression plots for significant pathways
 #
-# We genereate expression plots for the target genes of pathways with significant activity differences using the DESeq2 `stat` value (y-axis) and the interaction `weight` (x-axis).\
+# We genereate expression plots for the target genes of pathways with significant activity differences using the DESeq2 `t-values` (y-axis) and the interaction `weight` (x-axis).\
 # The results are stored in `png, pdf, svg` format.
 
 # %% [markdown]
@@ -467,7 +483,8 @@ for contrast in contrasts:
 # %% [markdown]
 # ## Infer transcription factor activities with consensus
 #
-# Run `decoupler` consensus method to infer transcription factor activities using the `Dorothea` models
+# Run `decoupler` consensus method to infer transcription factor activities from the DESeq2 result using the `DoRothEA` models.\
+# We use the obtained gene level `t-value` statistics stored in `stat`.
 
 # %%
 # Infer transcription factor activities with consensus
@@ -863,7 +880,7 @@ cyto_sig = pd.melt(
 cyto_sig
 
 # %% [markdown]
-# Run the decoupler consensus scoring function using the DESeq2 `stat` values and the `CytoSig` net
+# Run the decoupler consensus scoring function using the DESeq2 `t-values` values and the `CytoSig` net
 
 # %%
 # Infer cytokin signaling with consensus

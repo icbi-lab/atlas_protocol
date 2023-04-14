@@ -36,7 +36,6 @@
 .. autosummary::
     :toctree: generated
 
-    pl.plot_qc_metrics
     pl.reshape_clustermap
     pl.save_fig_mfmt
     pl.significance_heatmap

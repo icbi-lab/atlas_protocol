@@ -1,4 +1,4 @@
-# atlas_protocol
+# Protocol for atlas-level integration and analysis of single cells
 
 [![Tests][badge-tests]][link-tests]
 [![Documentation][badge-docs]][link-docs]
@@ -7,30 +7,24 @@
 [link-tests]: https://github.com/icbi-lab/atlas_protocol/actions/workflows/test.yml
 [badge-docs]: https://img.shields.io/readthedocs/atlas_protocol
 
-A computational protocol for atlas-level data integration and analysis as performed in Salcher et al. (2022).
+A computational protocol for atlas-level data integration, downstream analysis and linking with phenotypic information
+from bulk RNA-seq data as performed in [Salcher et al. (2022)](<https://www.cell.com/cancer-cell/fulltext/S1535-6108(22)00499-8>).
 
 ## Getting started
 
-Please refer to the [documentation][link-docs]. In particular, the
+This repository consists of two parts:
 
--   [API documentation][link-api].
+-   An [online version][link-docs] of the protocol
+-   A python package (`atlas_protocol_scripts`) providing utility functions used in the protocol.
+
+For **prerequisites** and instructions to **obtain data** and **software dependencies** for running
+the tutorial, please see the ["before you begin"][before-you-begin] section in the documentation.
+
+For **details on the helper functions**, see the [API documentation][link-api].
 
 ## Installation
 
-You need to have Python 3.8 or newer installed on your system. If you don't have
-Python installed, we recommend installing [Mambaforge](https://github.com/conda-forge/miniforge#mambaforge).
-
-There are several alternative options to install atlas_protocol:
-
-<!--
-1) Install the latest release of `atlas_protocol` from `PyPI <https://pypi.org/project/atlas_protocol/>`_:
-
-```bash
-pip install atlas_protocol
-```
--->
-
-1. Install the latest development version:
+The package with helper functions can be installed from GitHub as follows:
 
 ```bash
 pip install git+https://github.com/icbi-lab/atlas_protocol.git@main
@@ -42,8 +36,7 @@ See the [changelog][changelog].
 
 ## Contact
 
-For questions and help requests, you can reach out in the [scverse discourse][scverse-discourse].
-If you found a bug, please use the [issue tracker][issue-tracker].
+Please use the [issue tracker][issue-tracker].
 
 ## Citation
 
@@ -54,3 +47,4 @@ If you found a bug, please use the [issue tracker][issue-tracker].
 [changelog]: https://atlas_protocol.readthedocs.io/latest/changelog.html
 [link-docs]: https://atlas_protocol.readthedocs.io
 [link-api]: https://atlas_protocol.readthedocs.io/latest/api.html
+[before-you-begin]: https://atlas-protocol.readthedocs.io/en/latest/before-you-begin.html

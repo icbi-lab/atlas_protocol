@@ -14,9 +14,9 @@ before-you-begin.md
 :caption: Building a single-cell atlas
 :maxdepth: 2
 
-notebooks/03_merge.ipynb
-notebooks/02_seed_annotation.ipynb
-notebooks/03-2_qc.ipynb
+notebooks/01_merge.ipynb
+notebooks/02_qc.ipynb
+notebooks/03_seed_annotation.ipynb
 notebooks/04_integrate_scvi.ipynb
 notebooks/05_cell_type_annotation.ipynb
 ```

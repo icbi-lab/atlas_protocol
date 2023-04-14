@@ -6,6 +6,24 @@ default_stages:
     - push
 minimum_pre_commit_version: 2.16.0
 repos:
+    - repo: https://github.com/mwouts/jupytext
+      rev: v1.14.5
+      hooks:
+          - id: jupytext
+            args:
+                [
+                    --sync,
+                    --pipe-fmt,
+                    py:percent,
+                    --pipe,
+                    black,
+                    --pipe,
+                    "ruff --fix {}",
+                ]
+            additional_dependencies:
+                - black==22.3.0 # Matches hook
+                - ruff==0.0.261
+            files: "^(docs/notebooks|_preprocessing)/.*$"
     - repo: https://github.com/psf/black
       rev: "23.3.0"
       hooks:
@@ -25,7 +43,7 @@ repos:
             # https://github.com/jupyterlab/jupyterlab/issues/12675
             language_version: "17.9.1"
     - repo: https://github.com/charliermarsh/ruff-pre-commit
-      rev: v0.0.260
+      rev: v0.0.261
       hooks:
           - id: ruff
             args: [--fix, --exit-non-zero-on-fix]
@@ -39,6 +57,7 @@ repos:
             args: [--fix=lf]
           - id: trailing-whitespace
           - id: check-case-conflict
+          - id: check-merge-conflict
     - repo: local
       hooks:
           - id: forbid-to-commit

@@ -20,8 +20,7 @@ pip install -e ".[dev,test,doc]"
 ## Code-style
 
 This template uses [pre-commit][] to enforce consistent code-styles. On every commit, pre-commit checks will either
-automatically fix issues with the code, or raise an error message. See [pre-commit checks](template_usage.md#pre-commit-checks) for
-a full list of checks enabled for this repository.
+automatically fix issues with the code, or raise an error message.
 
 To enable pre-commit locally, simply run
 
@@ -73,24 +72,12 @@ in the root of the repository. Continuous integration will automatically run the
 
 ### Updating the version number
 
-Before making a release, you need to update the version number. Please adhere to [Semantic Versioning][semver], in brief
+Before making a release, you need to update the version number. Please adhere to [Calender Versioning][calver].
 
-> Given a version number MAJOR.MINOR.PATCH, increment the:
->
-> 1.  MAJOR version when you make incompatible API changes,
-> 2.  MINOR version when you add functionality in a backwards compatible manner, and
-> 3.  PATCH version when you make backwards compatible bug fixes.
->
-> Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format.
+In brief,
 
-We use [bump2version][] to automatically update the version number in all places and automatically create a git tag.
-Run one of the following commands in the root of the repository
-
-```bash
-bump2version patch
-bump2version minor
-bump2version major
-```
+-   update the version number in `pyproject.toml`
+-   create a git tag, e.g. `git tag v2023.04.01`
 
 Once you are done, run
 
@@ -99,40 +86,6 @@ git push --tags
 ```
 
 to publish the created tag on GitHub.
-
-[bump2version]: https://github.com/c4urself/bump2version
-
-### Building and publishing the package on PyPI
-
-Python packages are not distributed as source code, but as _distributions_. The most common distribution format is the so-called _wheel_. To build a _wheel_, run
-
-```bash
-python -m build
-```
-
-This command creates a _source archive_ and a _wheel_, which are required for publishing your package to [PyPI][]. These files are created directly in the root of the repository.
-
-Before uploading them to [PyPI][] you can check that your _distribution_ is valid by running:
-
-```bash
-twine check dist/*
-```
-
-and finally publishing it with:
-
-```bash
-twine upload dist/*
-```
-
-Provide your username and password when requested and then go check out your package on [PyPI][]!
-
-For more information, follow the [Python packaging tutorial][].
-
-It is possible to automate this with GitHub actions, see also [this feature request][pypi-feature-request]
-in the cookiecutter-scverse template.
-
-[python packaging tutorial]: https://packaging.python.org/en/latest/tutorials/packaging-projects/#generating-distribution-archives
-[pypi-feature-request]: https://github.com/scverse/cookiecutter-scverse/issues/88
 
 ## Writing documentation
 
@@ -152,18 +105,14 @@ The documentation is set-up to render jupyter notebooks stored in the `docs/note
 Currently, only notebooks in `.ipynb` format are supported that will be included with both their input and output cells.
 It is your reponsibility to update and re-run the notebook whenever necessary.
 
-If you are interested in automatically running notebooks as part of the continuous integration, please check
-out [this feature request](https://github.com/scverse/cookiecutter-scverse/issues/40) in the `cookiecutter-scverse`
-repository.
-
-#### Hints
+### Hints
 
 -   If you refer to objects from other packages, please add an entry to `intersphinx_mapping` in `docs/conf.py`. Only
     if you do so can sphinx automatically create a link to the external documentation.
 -   If building the documentation fails because of a missing link that is outside your control, you can add an entry to
     the `nitpick_ignore` list in `docs/conf.py`
 
-#### Building the docs locally
+### Building the docs locally
 
 ```bash
 cd docs
@@ -195,3 +144,4 @@ open _build/html/index.html
 [numpydoc]: https://numpydoc.readthedocs.io/en/latest/format.html
 [sphinx autodoc typehints]: https://github.com/tox-dev/sphinx-autodoc-typehints
 [pypi]: https://pypi.org/
+[calver]: https://calver.org/

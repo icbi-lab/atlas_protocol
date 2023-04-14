@@ -16,6 +16,27 @@ from ._pseudobulk import pseudobulk
 
 
 class CpdbAnalysis:
+    """Class that handles comparative cellphonedb analysis.
+
+    Parameters
+    ----------
+    cpdb
+        pandas data frame with cellphonedb interactions.
+        Required columns: `source_genesymbols`, `target_genesymbol`.
+        You can get this from omnipathdb:
+        https://omnipathdb.org/interactions/?fields=sources,references&genesymbols=1&databases=CellPhoneDB
+    adata
+        Anndata object with the target cells. Will use this to derive mean fraction of expressed cells.
+        Should contain counts in X.
+    pseudobulk_group_by
+        Pseudobulk is used to compute the mean fraction
+        of expressed cells by patient
+    cell_type_column
+        Column in anndata that contains the cell-type annotation.
+    min_obs
+        Only consider samples with at least `min_obs` cells for pseudobulk analysis.
+    """
+
     def __init__(
         self,
         cpdb,
@@ -25,26 +46,6 @@ class CpdbAnalysis:
         cell_type_column: str,
         min_obs=10,
     ):
-        """Class that handles comparative cellphonedb analysis.
-
-        Parameters
-        ----------
-        cpdb
-            pandas data frame with cellphonedb interactions.
-            Required columns: `source_genesymbols`, `target_genesymbol`.
-            You can get this from omnipathdb:
-            https://omnipathdb.org/interactions/?fields=sources,references&genesymbols=1&databases=CellPhoneDB
-        adata
-            Anndata object with the target cells. Will use this to derive mean fraction of expressed cells.
-            Should contain counts in X.
-        pseudobulk_group_by
-            See :func:`scanpy_helper.pseudobulk.pseudobulk`. Pseudobulk is used to compute the mean fraction
-            of expressed cells by patient
-        cell_type_column
-            Column in anndata that contains the cell-type annotation.
-        min_obs
-            Only consider samples with at least `min_obs` cells for pseudobulk analysis.
-        """
         self.cpdb = cpdb
         self.cell_type_column = cell_type_column
         self.min_obs = min_obs

@@ -39,11 +39,14 @@ the-next-steps.md
 :maxdepth: 2
 
 api.md
+```
+
+```{toctree}
+:hidden: true
+:caption: About this project
+:maxdepth: 2
+
 changelog.md
 contributing.md
 references.md
-```
-
-```
-
 ```

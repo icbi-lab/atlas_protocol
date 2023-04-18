@@ -1016,6 +1016,3 @@ for contrast in contrasts:
     os.makedirs(tsv_dir, mode=0o750, exist_ok=True)
     contrast["cs_acts"].to_csv(f"{tsv_dir}/{contrast['name']}_CytoSig_acts.tsv", sep="\t")
     contrast["cs_pvals"].to_csv(f"{tsv_dir}/{contrast['name']}_CytoSig_pvals.tsv", sep="\t")
-
-
-# %%

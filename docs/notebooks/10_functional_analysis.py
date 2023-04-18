@@ -735,7 +735,8 @@ for contrast in contrasts:
     # make padj_mat
     gsea_padj = gsea_pvals_long.pivot(index="cell_type", columns="source", values="padj")
     gsea_padj.index.name = None
-    # make sure that we preserver the order of row and columns
+
+    # store the padj for the contrast and make sure that we preserve the order of row and columns
     contrast["gsea_padj"] = gsea_padj.reindex(index=contrast["gsea_pvals"].index).reindex(
         contrast["gsea_pvals"].columns, axis=1
     )

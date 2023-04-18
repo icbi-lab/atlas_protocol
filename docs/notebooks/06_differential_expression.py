@@ -40,6 +40,9 @@ import seaborn as sns
 import statsmodels.stats.multitest
 from IPython.display import display
 
+# from atlas_protocol_scripts.pl import plot_paired
+
+
 # set PATH env variable to conda env for specific R version.
 # To use [DESeq2, R version "4.2" required](https://bioconductor.org/packages/release/bioc/html/DESeq2.html)
 path_to_R = "/usr/local/bioinf/R/R-4.2.3/bin/"
@@ -325,23 +328,25 @@ for contrast in contrasts:
         # Calculate nrows based on ncol
         ncols = 4 if n_sig >= 4 else n_sig
         nrows = int(np.ceil(n_sig / ncols))
-        # fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(ncols * 4, nrows * 4))
-        # empty_axs = axs.flatten()
+        fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(ncols * 4, nrows * 4))
+        empty_axs = iter(axs.flatten())
         # axs = [{"ax": ax} for ax in zip(axs))]
-        axs = ct_dict["cell_type"]
+        # axs = ct_dict["cell_type"]
 
-        for ax in axs:
+        for ct, ax in zip(cell_type, empty_axs):
             dc.plot_volcano(
                 logFCs,
                 pvals,
-                ax["ct"],
-                name=ax["ct"],
+                ct,
+                name=ct,
                 top=10,
                 sign_thr=0.1,
                 lFCs_thr=0.5,
                 return_fig=False,
-                # ax=ax["ax"],
+                ax=ax,
             )
+        for ax in empty_axs:
+            ax.set_visible(False)
 
         # set empty axes invisible
         # for ax in range(len(axs), len(empty_axs)):
@@ -512,16 +517,15 @@ def plot_paired(
                 size=size,
                 linewidth=1,
             )
-            if paired_by is not None:
-                sns.lineplot(
-                    x=groupby,
-                    data=df_melt.loc[lambda x: x["var"] == var],  # noqa: B023
-                    hue=hue,
-                    y="val",
-                    ax=ax,
-                    legend=False,
-                    ci=None,
-                )
+            # sns.lineplot(
+            #    x=groupby,
+            #    data=df_melt.loc[lambda x: x["var"] == var],
+            #    hue=hue,
+            #    y="val",
+            #    ax=ax,
+            #    legend=False,
+            #    ci=None,
+            # )
             sns.boxplot(
                 x=groupby,
                 data=df_melt.loc[lambda x: x["var"] == var],  # noqa: B023
@@ -564,7 +568,9 @@ for ct in cell_type:
         var_names=list(contrast["de_res"][ct].index)[0:5],
         n_cols=5,
         panel_size=(2, 4),
-        hue=None,
+        hue="dataset",
         size=10,
         ylabel="expression",
     )
+
+# %%

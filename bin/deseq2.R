@@ -31,22 +31,6 @@ p <- add_argument(p, "--c2", help = "Contrast level 2 (baseline)", default = "gr
 p <- add_argument(p, "--cpus", help = "Number of cpus", default = 8)
 p <- add_argument(p, "--save_workspace", help = "Save R workspace", flag = TRUE)
 
-
-# # For testing only
-# argv = environment()
-# resDir = argv$results_dir = "/data/projects/2023/atlas_protocol/results/differential_expression"
-# prefix = argv$prefix = "test"
-# cond_col  = argv$cond_col = "condition"
-# sample_col  = argv$sample_col = "sample"
-# fdr_cutoff  = argv$fdr = 0.1
-# c1  = argv$c1 = "LUAD"
-# c2  = argv$c2 = "LUSC"
-# argv$cpus = 8
-# argv$covariate_formula = ""
-# count_mat_path  = argv$countData ="/data/projects/2023/atlas_protocol/results/differential_expression/deseq_resdir/LUSC_vs_LUAD_B_cell_adata.counts.csv"
-# sampleAnno_path = argv$colData = "/data/projects/2023/atlas_protocol/results/differential_expression/deseq_resdir/LUSC_vs_LUAD_B_cell_adata.samplesheet.csv"
-
-
 # Parse cmd line arguments
 argv <- parse_args(p)
 

@@ -371,10 +371,14 @@ for contrast in contrasts:
             p_count += 1
             if p_count <= show_n:
                 display(bp)
+            else:
+                print(f"Not showing: {ct}")
 
             plt.close()
         else:
             print("No plot for: " + contrast["name"] + ":" + ct)
+
+    print(f"\nResults stored in: {contrast['res_dir']}/pathways")
 
 
 # %% [markdown]
@@ -412,6 +416,8 @@ for contrast in contrasts:
             plot_provider="mpl",
         )
         plt.show()
+
+        print(f"\nResults stored in: {contrast['res_dir']}/pathways")
 
 # %% [markdown]
 # ### Generate target gene expression plots for significant pathways
@@ -479,6 +485,8 @@ for contrast in contrasts:
         plot_provider="mpl",
     )
 
+    print(f"\nResults stored in: {contrast['res_dir']}/pathways")
+
 
 # %% [markdown]
 # ### Save pathway activity and p-values matrix
@@ -544,11 +552,15 @@ for contrast in contrasts:
             p_count += 1
             if p_count <= show_n:
                 display(bp)
+            else:
+                print(f"Not showing: {ct}")
 
             plt.close()
 
         else:
             print("No plot for: " + contrast["name"] + ":" + ct)
+
+    print(f"\nResults stored in: {contrast['res_dir']}/transcription_factors")
 
 
 # %% [markdown]
@@ -598,6 +610,8 @@ for contrast in contrasts:
         )
         plt.tight_layout()
         plt.show()
+
+    print(f"\nResults stored in: {contrast['res_dir']}/transcription_factors")
 
 # %% [markdown]
 # ### Volcano plots of expression of target genes from transcription factors of interest
@@ -672,6 +686,8 @@ for contrast in contrasts:
             fmt="all",
             plot_provider="mpl",
         )
+
+    print(f"\nResults stored in: {contrast['res_dir']}/transcription_factors")
 
 # %% [markdown]
 # ### Save transcription factor activity and p-values matrix
@@ -789,6 +805,8 @@ for contrast in contrasts:
     )
     plt.show()
 
+    print(f"\nResults stored in: {contrast['res_dir']}/MSigDB")
+
 # %% [markdown]
 # ### Visualize the most enriched terms as barplot
 #
@@ -844,7 +862,9 @@ for contrast in contrasts:
                 )
             else:
                 print("No plot for: " + contrast["name"] + ":" + ct)
-plt.close()
+    plt.close()
+
+    print(f"\nResults stored in: {contrast['res_dir']}/MSigDB")
 
 
 # %% [markdown]
@@ -913,6 +933,8 @@ for contrast in contrasts:
         fmt="all",
         plot_provider="mpl",
     )
+
+    print(f"\nResults stored in: {contrast['res_dir']}/MSigDB")
 
 # %% [markdown]
 # ### Save GSEA scores of enriched terms
@@ -1004,6 +1026,8 @@ for contrast in contrasts:
             plot_provider="mpl",
         )
         plt.show()
+
+        print(f"\nResults stored in: {contrast['res_dir']}/cytokine_signaling")
 
 # %% [markdown]
 # ### Save cytokine signaling activity scores and p-values matrix

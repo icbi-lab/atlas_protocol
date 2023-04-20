@@ -22,6 +22,9 @@
 # - decoupler {cite}`Badia-i-Mompel2022` a tool that contains different statistical methods to extract biological activities from omics data using prior knowledge.
 # - deseq2  {cite}`Love MI, Huber W, Anders S (2014).` a tools that uses the negative binomial distribution to model count data from high-throughput sequencing assays and evaluate the relationship between variance and mean, while also testing for differential expression.
 #
+# ```{bibliography}
+# ```
+#
 
 # %% [markdown]
 # ## 1.Load libraries

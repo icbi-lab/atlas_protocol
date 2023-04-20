@@ -7,24 +7,28 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python [conda env:.conda-atlas_protocol_23]
+#     display_name: Python [conda env:conda-2023-atlas-protocol]
 #     language: python
-#     name: conda-env-.conda-atlas_protocol_23-py
+#     name: conda-env-conda-2023-atlas-protocol-py
 # ---
 
 # %% [markdown]
-# # Differential gene expression analysis per cell-type between conditions
+# # Differential gene expression
 #
-# This notebookios is focused in scRNA-seq gene expression readouts and their differences in magnitude and significance between the condition of interest and a reference.
+# One of the most commonly asked questions when comparing between conditions is which genes
+# are differentially expressed. In statistical terms, we ask if the mean gene expression differs between two groups more than what would be expected by random chance.
+# A common fallacy here is that frequently applied statistical tests assume independence of the observations, while cells from the same sample or patient are not independent. This is also called "pseudoreplication bias" and leads to drastically inflated p-values {cite}`squairConfrontingFalseDiscoveries2021, zimmermanPracticalSolutionPseudoreplication2021`.
 #
-# In this notebook we use:
+# Unfortunately, the differential testing
+# functions available from the most commonly used frameworks (e.g. {func}`scanpy.tl.rank_genes_groups` in scanpy) do not account for this, allowing for qualitative comparisons at best. As an alternative, {cite:t}`squairConfrontingFalseDiscoveries2021` suggest to aggregate samples into "pseudo-bulks" and apply tools originally designed for comparing bulk RNA-seq samples.
 #
-# - decoupler {cite}`Badia-i-Mompel2022` a tool that contains different statistical methods to extract biological activities from omics data using prior knowledge.
-# - deseq2  {cite}`Love MI, Huber W, Anders S (2014).` a tools that uses the negative binomial distribution to model count data from high-throughput sequencing assays and evaluate the relationship between variance and mean, while also testing for differential expression.
+# In this section, we are going to demonstrate how to generate pseudo-bulk samples by cell-type using
+# [decoupler](https://github.com/saezlab/decoupler-py) {cite}`badia-i-mompelDecoupleREnsembleComputational2022` and apply DESeq2 {cite}`loveModeratedEstimationFold2014` to perform cell-type-specific comparison between conditions.
 #
-# ```{bibliography}
-# ```
-#
+# :::{seealso}
+#  * The [Differential gene expression](https://www.sc-best-practices.org/conditions/differential_gene_expression.html) chapter of the single-cell best practice book {cite}`heumosBestPracticesSinglecell2023`.
+#  * The [decoupler pseudobulk vignette](https://decoupler-py.readthedocs.io/en/latest/notebooks/pseudobulk.html).
+# :::
 
 # %% [markdown]
 # ## 1.Load libraries
@@ -34,7 +38,6 @@ import glob
 import os
 import subprocess as sp
 
-# Libraries for visualization
 import decoupler as dc
 import matplotlib.pyplot as plt
 import numpy as np
@@ -44,89 +47,142 @@ from IPython.display import display
 
 from atlas_protocol_scripts.pl import plot_paired
 
-# set PATH env variable to conda env for specific R version.
-# To use [DESeq2, R version "4.2" required](https://bioconductor.org/packages/release/bioc/html/DESeq2.html)
-path_to_R = "/usr/local/bioinf/R/R-4.2.3/bin/"
-os.environ["PATH"] = path_to_R + os.pathsep + os.environ["PATH"]
-
-cpus = 6
-
 # %% [markdown]
 # ## 2. Load input data
-# * adata_path: Path to anndata file
-# * deseq: Path to deseq2 script
-# * deseq_results: Path to results directory.
-#
+# 1. Load the annotated AnnData object
 
 # %%
-adata_path = "/data/projects/2023/atlas_protocol/input_data_zenodo/atlas-integrated-annotated.h5ad"
-deseq = "../../bin/deseq2.R"
-deseq_results = "/data/projects/2023/atlas_protocol/results/differential_expression/deseq_resdir"
-
-# %%
+adata_path = "../../data/input_data_zenodo/atlas-integrated-annotated.h5ad"
 adata = sc.read_h5ad(adata_path)
 
-# Subset adata
-adata = adata[adata.obs["origin"].isin(["tumor_primary"])]
-adata = adata[adata.obs["condition"].isin(["LUAD", "LUSC"])]
+# %% [markdown]
+# 2. Define the paths to the scripts for DESeq2. The script is shipped as part of the `atlas_protocol` repo.
 
 # %%
+deseq_script_path = "../../bin/deseq2.R"
+
+# %% [markdown]
+# 3. Create output directories
+
+# %%
+deseq_results = "../../data/results/differential_expression/"
+# !mkdir -p {deseq_results}
+
+# %% [markdown]
+# ## 3. Generate Pseudobulk
+#
+# Here, we aggregate counts by biological replicate (patient) for each cell-type individually.
+#
+# 1. subset AnnData to the cells of interest. In this case, we only focus on cells originating from primary tumor samples and the two conditions (LUAD vs. LUSC) we are going to compare.
+
+# %%
+adata = adata[adata.obs["origin"].isin(["tumor_primary"]) & adata.obs["condition"].isin(["LUAD", "LUSC"])]
 adata
 
 # %% [markdown]
-# ## 3. Pseudobulk
-# Get pseudobulk for entire adata
+# 2. Generate pseudobulk
+#
+# :::{important}
+# Generate pseudo-bulk based on **raw counts** and aggregate them by summing up.
+# :::
 
 # %%
 # Get pseudo-bulk profile
 pdata = dc.get_pseudobulk(
     adata,
     sample_col="sample",
-    groups_col="condition",
+    groups_col=["cell_type_coarse", "condition"],
     layer="raw_counts",  # layer where raw counts are store in adata
     mode="sum",
-    min_cells=0,
+    min_cells=0,  # we are setting this to 0 and filter in an explicit, separate step.
     min_counts=0,
 )
 pdata
 
 # %% [markdown]
-# Normalize pseudobulk
+# 3. Inspect the table of "pseudobulk samples"
 
 # %%
-pdata.layers["counts"] = pdata.X.copy()
+pdata.obs
+
+# %% [markdown]
+# ## 4. Filter samples
+#
+# In this step, we are removing samples that consist of too few cells or have a small number of total counts in both conditions.
+#
+# 1. Plot relationship of counts and cells per dataset and cell-type
+
+# %%
+for col in ["dataset", "cell_type_coarse", "condition"]:
+    dc.plot_psbulk_samples(pdata, groupby=col, figsize=(3, 3))
+
+# %% [markdown]
+# 2. Remove samples with less than 10 cells or less than 1000 counts
+
+# %%
+pdata = pdata[(pdata.obs["psbulk_n_cells"] >= 10) & (pdata.obs["psbulk_counts"] >= 1000)]
+
+# %% [markdown]
+# ## 5. Split pseudobulk by cell-type
+#
+# For the following steps, we treat each cell-type separately, therefore we split the pseudobulk object
+# into a dictionary of objects per cell-type.
+
+# %% [markdown]
+# 1. Define list of cell-types
+
+# %%
+cell_types = pdata.obs["cell_type_coarse"].unique()
+
+# %% [markdown]
+# 2. Generate per-cell-type dictionary
+
+# %%
+pdata_by_cell_type = {
+    cell_type: pdata[pdata.obs["cell_type_coarse"] == cell_type, :].copy() for cell_type in cell_types
+}
+
+# %% [markdown]
+# ## 6. Filter genes
+# Here, we filter noisy genes with a low expression value. We remove genes that do not have a certain number of total counts (`min_total_count`) and have a minimum number of counts in at least $n$ samples, where $n$ equals to the number of samples
+# in the smallest group (or less, if there is a sufficient number of samples).
+#
+# This needs to be done for each cell-type individually since each
+# cell-type may express different sets of genes.
+#
+# :::{seealso}
+# [`filterByExpr`](https://rdrr.io/bioc/edgeR/man/filterByExpr.html) in [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html).
+# :::
+
+# %% [markdown]
+# 1. Inspect, for a given cell-type, the number of genes that the thresholds (here for Epithelial cells):
+
+# %%
+dc.plot_filter_by_expr(
+    pdata_by_cell_type["Epithelial cell"],
+    group="condition",
+    min_count=10,
+    min_total_count=15,
+)
+
+# %% [markdown]
+# 2. Apply filter genes for all cell-types. Here, we apply the same (default) filter to all cell-types.
+
+# %%
+for cell_type in cell_types:
+    dc.filter_by_expr(
+        pdata_by_cell_type[cell_type],
+        group="condition",
+        min_count=10,
+        min_total_count=15,
+    )
+
+# %% [markdown]
+# 4. Normalize pseudobulk to log counts per million (logCPM)
+
+# %%
 sc.pp.normalize_total(pdata, target_sum=1e6)
-
-# %%
-pdata
-
-# %% [markdown]
-# ## 4. Quality control plot
-#
-# From generated profile for each dataset
-
-# %%
-dc.plot_psbulk_samples(pdata, groupby=["dataset", "condition"], figsize=(13, 5))
-
-# %% [markdown]
-# Convention to filter low quality samples:
-#
-#     - Number of cells --> min_cells (genes  minimum total number of reads across sample)
-#     - Number of counts --> min_counts (genes minimum number of counts in a number of samples)
-#
-# Check the frequency of genes (features) vs n. of samples and total sum of counts with  ```plot_filter_by_expr```
-#
-
-# %%
-dc.plot_filter_by_expr(pdata, group="condition", min_count=10, min_total_count=15)
-
-# %% [markdown]
-# ##  5. Define cell type to use
-#
-# Specifiy for which cell type annotation level we want to run the differential expression analyses
-
-# %%
-cell_type = list(adata.obs["cell_type_coarse"].unique())
+sc.pp.log1p(pdata)
 
 # %% [markdown]
 # ## 6. Create dictionary of adatas subsetted by cell type
@@ -148,27 +204,26 @@ def run_deseq(count_table, sample_sheet, deseq_prefix, contrast, deseq_resdir):
     """Function: Run DESeq2 on pseudobulk of all cell types from cell_type."""
     os.makedirs(deseq_resdir, exist_ok=True)
 
+    # fmt: off
     deseq_cmd = [
-        deseq,
-        count_table,
-        sample_sheet,
-        "--cond_col",
-        "condition",
-        "--c1",
-        contrast[0],
-        "--c2",
-        contrast[1],
-        "--resDir",
-        deseq_resdir,
-        "--prefix",
-        deseq_prefix,
-        "--cpus",
-        str(cpus),
-        "--save_workspace",
+        deseq_script_path, count_table, sample_sheet,
+        "--cond_col", "condition",
+        "--c1", contrast[0],
+        "--c2", contrast[1],
+        "--resDir", deseq_resdir,
+        "--prefix", deseq_prefix,
+        "--cpus", 1,
     ]
+    # fmt: on
     with open(deseq_resdir + "/" + deseq_prefix + ".log", "w") as stdout:
         with open(deseq_resdir + "/" + deseq_prefix + ".err", "w") as stderr:
-            sp.run(deseq_cmd, capture_output=False, stdout=stdout, stderr=stderr, check=True)
+            sp.run(
+                deseq_cmd,
+                capture_output=False,
+                stdout=stdout,
+                stderr=stderr,
+                check=True,
+            )
 
 
 # %% [markdown]

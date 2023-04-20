@@ -1,23 +1,19 @@
 #!/usr/bin/env Rscript
 
-#Libraries
-library("DESeq2")
-library("BiocParallel")
-library("org.Mm.eg.db")
-library("dplyr")
-library("IHW")
-library("tibble")
-library("readr")
-library("argparser", quietly = TRUE)
-library(conflicted)
-library(tidyverse)
-conflict_prefer("select", "dplyr")
+suppressPackageStartupMessages({
+  library(conflicted)
+  library("DESeq2")
+  library("BiocParallel")
+  library("dplyr")
+  conflict_prefer("select", "dplyr", quiet=TRUE)
+  library("IHW")
+  library("tibble")
+  library("readr")
+  library("argparser", quietly = TRUE)
+})
 
-
-# Parser
 p <- arg_parser("Input Differential Expression Analysis")
 
-# Arguments
 p <- add_argument(p, "countData", help = "Count matrix", type = "character")
 p <- add_argument(p, "colData", help = "Sample annotation matrix", type = "character")
 p <- add_argument(p, "--resDir", help = "Output result directory", default = "./results")
@@ -28,7 +24,7 @@ p <- add_argument(p, "--sample_col", help = "Sample identifier in sample annotat
 p <- add_argument(p, "--fdr", help = "False discovery rate", default = 0.1)
 p <- add_argument(p, "--c1", help = "Contrast level 1 (perturbation)", default = "grpA")
 p <- add_argument(p, "--c2", help = "Contrast level 2 (baseline)", default = "grpB")
-p <- add_argument(p, "--cpus", help = "Number of cpus", default = 8)
+p <- add_argument(p, "--cpus", help = "Number of cpus", default = 1)
 p <- add_argument(p, "--save_workspace", help = "Save R workspace", flag = TRUE)
 
 # Parse cmd line arguments
@@ -40,11 +36,10 @@ resDir <- argv$resDir
 prefix <- argv$prefix
 cond_col <- argv$cond_col
 sample_col <- argv$sample_col
-fdr_cutoff <- argv$fdr
 c1 <- argv$c1
 c2 <- argv$c2
 n_cpus <- argv$cpus
-save_ws = argv$save_workspace
+save_ws <- argv$save_workspace
 covariate_formula <- argv$covariate_formula
 
 # Number of cpus to be used
@@ -81,15 +76,15 @@ keep <- rowSums(counts(collapseReplicates(dds, dds[[cond_col]]))) >= 10
 dds <- dds[keep, ]
 
 # run DESeq
-dds.res<- DESeq(dds, parallel = (n_cpus > 1))
+dds.res <- DESeq(dds, parallel = (n_cpus > 1))
 
 # Define contrast names
-contrasts = list(c(cond_col, c1, c2))
-names(contrasts) = sprintf("%s_vs_%s", c1, c2)
+contrasts <- list(c(cond_col, c1, c2))
+names(contrasts) <- sprintf("%s_vs_%s", c1, c2)
 
 ### IHW
 # Use of IHW for p value adjustment of DESeq2 results
-resIHW = lapply(names(contrasts), function(name) {
+resIHW <- lapply(names(contrasts), function(name) {
   contrast = contrasts[[name]]
   results(dds.res, filterFun = ihw, contrast = contrast) |>
     as_tibble(rownames = "gene_id") |>
@@ -98,7 +93,7 @@ resIHW = lapply(names(contrasts), function(name) {
 }) |> bind_rows()
 
 
-# write results to TSV and XLSX files
+# write results to TSV files
 write_tsv(resIHW, file.path(resDir, paste0(prefix, "_DESeq2_result.tsv")))
 
 # Save R ws

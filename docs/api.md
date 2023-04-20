@@ -1,5 +1,17 @@
 # API
 
+## Input/Output
+
+```{eval-rst}
+.. module:: atlas_protocol_scripts.pp
+.. currentmodule:: atlas_protocol_scripts
+
+.. autosummary::
+    :toctree: generated
+
+    pp.is_outlier
+```
+
 ## Preprocessing
 
 ```{eval-rst}

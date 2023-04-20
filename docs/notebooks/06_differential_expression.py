@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.5
+#       jupytext_version: 1.14.4
 #   kernelspec:
 #     display_name: Python [conda env:conda-2023-atlas-protocol]
 #     language: python
@@ -34,18 +34,23 @@
 # ## 1.Load libraries
 
 # %%
+# %load_ext autoreload
+# %autoreload 2
 import glob
-import os
 import subprocess as sp
 
 import decoupler as dc
 import matplotlib.pyplot as plt
+from anndata import AnnData
 import numpy as np
 import pandas as pd
 import scanpy as sc
 from IPython.display import display
+from pathlib import Path
+from tqdm.contrib.concurrent import process_map
 
-from atlas_protocol_scripts.pl import plot_paired
+import atlas_protocol_scripts as aps
+import re
 
 # %% [markdown]
 # ## 2. Load input data
@@ -65,7 +70,7 @@ deseq_script_path = "../../bin/deseq2.R"
 # 3. Create output directories
 
 # %%
-deseq_results = "../../data/results/differential_expression/"
+deseq_results = Path("../../data/results/differential_expression/")
 # !mkdir -p {deseq_results}
 
 # %% [markdown]
@@ -138,9 +143,13 @@ cell_types = pdata.obs["cell_type_coarse"].unique()
 # 2. Generate per-cell-type dictionary
 
 # %%
-pdata_by_cell_type = {
-    cell_type: pdata[pdata.obs["cell_type_coarse"] == cell_type, :].copy() for cell_type in cell_types
-}
+pdata_by_cell_type = {}
+for ct in cell_types:
+    pb = pdata[pdata.obs["cell_type_coarse"] == ct, :].copy()
+    if pb.obs["condition"].nunique() <= 1:
+        print(f"Cell type {ct} does not have samples in all groups")
+    else:
+        pdata_by_cell_type[ct] = pb
 
 # %% [markdown]
 # ## 6. Filter genes
@@ -169,54 +178,65 @@ dc.plot_filter_by_expr(
 # 2. Apply filter genes for all cell-types. Here, we apply the same (default) filter to all cell-types.
 
 # %%
-for cell_type in cell_types:
+for tmp_pdata in pdata_by_cell_type.values():
     dc.filter_by_expr(
-        pdata_by_cell_type[cell_type],
+        tmp_pdata,
         group="condition",
         min_count=10,
         min_total_count=15,
     )
 
+
 # %% [markdown]
-# 4. Normalize pseudobulk to log counts per million (logCPM)
+# ## 7. Run DESeq
+
+# %% [markdown]
+# 1. Inspect the help page of the DESeq2 script
 
 # %%
-sc.pp.normalize_total(pdata, target_sum=1e6)
-sc.pp.log1p(pdata)
+# !{deseq_script_path} --help
 
 # %% [markdown]
-# ## 6. Create dictionary of adatas subsetted by cell type
-
-# %%
-adata_dict = {}
-for name in cell_type:
-    name_ad = name.replace(" ", "_")
-    adata_name = f"{name_ad}_adata"
-    adata_dict[adata_name] = adata[adata.obs["cell_type_coarse"].isin([name])]
-
-
-# %% [markdown]
-# ##  Function: Run DESeq2 on pseudobulk of all cell types from cell_type
+# 2. Define a function to create an output directory per cell-type
 
 
 # %%
-def run_deseq(count_table, sample_sheet, deseq_prefix, contrast, deseq_resdir):
+def _create_prefix(cell_type):
+    ct_sanitized = re.sub("[^0-9a-zA-Z]+", "_", cell_type)
+    prefix = deseq_results / "LUAD_vs_LUSC" / ct_sanitized
+    prefix.mkdir(parents=True, exist_ok=True)
+    return prefix
+
+
+# %% [markdown]
+# 2. Export pseudobulk objects to CSV files. This will generate a count matrix an a samplesheet for each cell-type.
+
+# %%
+for ct, tmp_pdata in pdata_by_cell_type.items():
+    prefix = _create_prefix(ct)
+    aps.io.write_deseq_tables(tmp_pdata, prefix / "samplesheet.csv", prefix / "counts.csv")
+
+
+# %% [markdown]
+# 3. Execute the DESeq2 script
+
+
+# %%
+def _run_deseq(cell_type: str, pseudobulk: AnnData):
     """Function: Run DESeq2 on pseudobulk of all cell types from cell_type."""
-    os.makedirs(deseq_resdir, exist_ok=True)
-
+    prefix = _create_prefix(cell_type)
     # fmt: off
     deseq_cmd = [
-        deseq_script_path, count_table, sample_sheet,
+        deseq_script_path, prefix / "counts.csv", prefix / "samplesheet.csv",
         "--cond_col", "condition",
-        "--c1", contrast[0],
-        "--c2", contrast[1],
-        "--resDir", deseq_resdir,
-        "--prefix", deseq_prefix,
-        "--cpus", 1,
+        "--c1", "LUAD",
+        "--c2", "LUSC",
+        "--resDir", prefix,
+        "--prefix", prefix.stem,
     ]
     # fmt: on
-    with open(deseq_resdir + "/" + deseq_prefix + ".log", "w") as stdout:
-        with open(deseq_resdir + "/" + deseq_prefix + ".err", "w") as stderr:
+    with open(prefix / "out.log", "w") as stdout:
+        with open(prefix / "err.log", "w") as stderr:
             sp.run(
                 deseq_cmd,
                 capture_output=False,
@@ -226,70 +246,36 @@ def run_deseq(count_table, sample_sheet, deseq_prefix, contrast, deseq_resdir):
             )
 
 
-# %% [markdown]
-# ## Function: Homogenize all sample ids
-
-
-# %%
-def fix_sample_ids(pb):
-    """Homogenize all sample ids."""
-    repl = {}
-    for k, v in dict(zip(pb.obs["condition"].index, "_" + pb.obs["condition"].values)).items():
-        repl[k] = k.replace(v, "")
-
-    return repl
+_ = process_map(_run_deseq, pdata_by_cell_type, pdata_by_cell_type.values())
 
 
 # %% [markdown]
-# ## Funciton: Save results from pseudobulk (samplesheet and counts) for all cell types from cell_type
-
+# 4. import results
 
 # %%
-def save_pseudobulk(pb, samplesheet_filename, counts_filename):
-    """Save results from pseudobulk (samplesheet and counts) for all cell types from cell_type."""
-    samplesheet = pb.obs.copy()
-    samplesheet.reset_index(inplace=True)
-    sample_ids_repl = fix_sample_ids(pb)
-    bulk_df = pb.to_df().T.rename(columns=sample_ids_repl)
-    bulk_df = pb.to_df().T
-    bulk_df.index.name = "gene_id"
-    samplesheet.to_csv(samplesheet_filename, index=False)
-    bulk_df.to_csv(counts_filename)
+de_results = {}
+for ct in pdata_by_cell_type:
+    prefix = _create_prefix(ct)
+    de_results[ct] = pd.read_csv(prefix / f"{prefix.stem}_DESeq2_result.tsv", sep="\t").assign(cell_type=ct)
+
+# %% [markdown]
+# ## 8. Make volcano plots
+
+# %%
+
+# %% [markdown]
+# 4. Normalize pseudobulk to log counts per million (logCPM)
+
+# %%
+sc.pp.normalize_total(pdata, target_sum=1e6)
+sc.pp.log1p(pdata)
+
+# %% [markdown]
+# ##  Function: Run DESeq2 on pseudobulk of all cell types from cell_type
 
 
 # %% [markdown]
 # ## 7. Create pseudobulk for each celltype using the coarse cell type annotation
-
-# %%
-for ct, tmp_ad in adata_dict.items():
-    pb = dc.get_pseudobulk(
-        tmp_ad,
-        sample_col="sample",
-        groups_col="condition",
-        layer="raw_counts",
-        mode="sum",
-        min_prop=0.05,
-        min_cells=10,
-        min_counts=1000,
-        min_smpls=2,
-    )
-    if pb.obs["condition"].nunique() <= 1:
-        print(f"Cell type {ct} does not have enough replicates per group")
-    else:
-        contrast = ["LUSC", "LUAD"]
-        contrast_str = f"{contrast[0]}_vs_{contrast[1]}"
-        deseq_resdir = f"{deseq_results}/{contrast_str}"
-
-        ct = ct.replace(" ", "_")
-        ct_fname = ct.replace("/", "_")
-        deseq_prefix = f"{contrast_str}_{ct_fname}"
-
-        sample_sheet = f"{deseq_results}/{deseq_prefix}.samplesheet.csv"
-        count_table = f"{deseq_results}/{deseq_prefix}.counts.csv"
-
-        save_pseudobulk(pb, sample_sheet, count_table)
-        run_deseq(count_table, sample_sheet, deseq_prefix, contrast, deseq_resdir)
-
 
 # %%
 # Contrasts

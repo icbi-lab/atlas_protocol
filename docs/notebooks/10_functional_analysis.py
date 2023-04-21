@@ -70,7 +70,7 @@ threadpool_limits(cpus)
 
 
 # %% [markdown]
-# ## Configure paths
+# ## 1. Configure paths
 #
 # * `adata_path`: Path to anndata file
 # * `deseq_path`: Path to directory where DESeq2 differential expression results are stored
@@ -96,7 +96,7 @@ msigdb_file = Path(results_dir, "msigdb_hs.tsv")
 cytosig_file = Path(results_dir, "cytosig_signature.tsv")
 
 # %% [markdown]
-# ## Load data
+# ## 2. Load data
 
 # %% [markdown]
 # ### anndata object
@@ -156,7 +156,7 @@ else:
     cytosig_signature = pd.read_csv(cytosig_file, sep="\t")
 
 # %% [markdown]
-# ## Define contrasts
+# ## 3. Define contrasts
 #
 # Here we define the gene expression contrasts/comparisons for which we to run the functional analyses.
 #
@@ -199,7 +199,7 @@ for ct in cell_types:
     print(ct)
 
 # %% [markdown]
-# ## Read DESeq2 results
+# ## 4. Read DESeq2 results
 
 # %%
 for contrast in contrasts:
@@ -285,7 +285,7 @@ for contrast in contrasts:
     display(fdr_mat)
 
 # %% [markdown]
-# ## Infer pathway activities with consensus
+# ## 5. Infer pathway activities with consensus
 #
 # Run `decoupler` consensus method to infer pathway activities from the DESeq2 result using the `PROGENy` models.\
 # We use the obtained gene level `wald` statistics stored in `stat`.
@@ -470,7 +470,7 @@ for contrast in contrasts:
 
 
 # %% [markdown]
-# ## Infer transcription factor activities with consensus
+# ## 6. Infer transcription factor activities with consensus
 #
 # Run `decoupler` consensus method to infer transcription factor activities from the DESeq2 result using the `DoRothEA` models.\
 # We use the obtained gene level `wald` statistics stored in `stat`.
@@ -671,7 +671,7 @@ for contrast in contrasts:
 
 
 # %% [markdown]
-# ## Infer enrichment of biological terms with GSEA using significant differential expressed genes
+# ## 7. Infer enrichment of biological terms with GSEA using significant differential expressed genes
 #
 # We can utilize MSigDB to assign biological terms to the differentially expressed genes. In this case, we will employ the `run_gsea` method from decoupler.
 
@@ -920,7 +920,7 @@ for contrast in contrasts:
 
 
 # %% [markdown]
-# ## CytoSig analysis
+# ## 8. CytoSig analysis
 #
 # We define enriched cytokine signaling signatures in the tumor cells using the *CytoSig* signature matrix an the `decoupler` consesus scoring function.
 

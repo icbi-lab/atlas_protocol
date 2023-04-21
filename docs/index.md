@@ -19,6 +19,12 @@ notebooks/02_qc.ipynb
 notebooks/03_seed_annotation.ipynb
 notebooks/04_integrate_scvi.ipynb
 notebooks/05_cell_type_annotation.ipynb
+```
+
+```{toctree}
+:hidden: true
+:caption: Downstream analysis
+:maxdepth: 2
 
 notebooks/06_differential_expression.ipynb
 notebooks/09_compositional.ipynb

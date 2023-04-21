@@ -97,6 +97,7 @@ intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
     "sccoda": ("https://sccoda.readthedocs.io/en/latest/", None),
     "pandas": ("https://pandas.pydata.org/docs/", None),
+    "scanpy": ("https://scanpy.readthedocs.io/en/stable", None),
 }
 
 # List of patterns, relative to source directory, that match files and

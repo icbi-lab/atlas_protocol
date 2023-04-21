@@ -1,5 +1,17 @@
 # API
 
+## Input/Output
+
+```{eval-rst}
+.. module:: atlas_protocol_scripts.io
+.. currentmodule:: atlas_protocol_scripts
+
+.. autosummary::
+    :toctree: generated
+
+    io.write_deseq_tables
+```
+
 ## Preprocessing
 
 ```{eval-rst}
@@ -24,6 +36,7 @@
     tl.fdr_correction
     tl.scissor_wilcoxon_test
     tl.CpdbAnalysis
+    tl.long_form_df_to_decoupler
 
 ```
 
@@ -37,4 +50,5 @@
     :toctree: generated
 
     pl.significance_heatmap
+    pl.plot_paired
 ```

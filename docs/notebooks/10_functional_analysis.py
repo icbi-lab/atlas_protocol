@@ -37,6 +37,7 @@
 # %%
 import logging
 import os
+import re
 import urllib.request
 import warnings
 from pathlib import Path
@@ -49,9 +50,6 @@ import scanpy as sc
 import seaborn as sns
 import statsmodels.stats.multitest
 from IPython.display import display
-from pydeseq2.dds import DeseqDataSet
-from pydeseq2.ds import DeseqStats
-from scipy import sparse
 from threadpoolctl import threadpool_limits
 
 import atlas_protocol_scripts as aps
@@ -75,10 +73,12 @@ threadpool_limits(cpus)
 # ## Configure paths
 #
 # * `adata_path`: Path to anndata file
+# * `deseq_path`: Path to directory where DESeq2 differential expression results are stored
 # * `results_dir`: Path to results directory. Will be created automatically.
 
 # %%
 adata_path = "../../data/input_data_zenodo/atlas-integrated-annotated.h5ad"
+deseq_path = "../../data/results/differential_expression"
 
 results_dir = "../../data/results/10_functional_analysis"
 
@@ -168,7 +168,7 @@ else:
 
 # %%
 contrasts = [
-    {"name": "LUSC_vs_LUAD", "condition": "LUSC", "reference": "LUAD"},
+    {"name": "LUAD_vs_LUSC", "condition": "LUAD", "reference": "LUSC"},
 ]
 contrasts
 
@@ -189,6 +189,9 @@ for contrast in contrasts:
 # %%
 cell_type_class = "cell_type_coarse"
 
+# %% [markdown]
+# Register all possible cell types in the annotation class
+
 # %%
 cell_types = adata.obs[cell_type_class].unique()
 print(f"Cell types in {cell_type_class} annotation:\n")
@@ -196,73 +199,31 @@ for ct in cell_types:
     print(ct)
 
 # %% [markdown]
-# ### Create pseudobulk for each celltype using the coarse cell type annotation
+# ## Read DESeq2 results
 
 # %%
-# Store raw rounded counts in layers
-adata.layers["int_counts"] = sparse.csr_matrix.ceil(adata.layers["raw_counts"])
-
-# %%
-# use decoupler to make pseudobulk
-pdata = dc.get_pseudobulk(
-    adata,
-    sample_col="sample",
-    groups_col=cell_type_class,
-    layer="int_counts",
-    mode="sum",
-    min_cells=10,
-    min_counts=1000,
-)
-# pdata
-
-# %% [markdown]
-# ### Run DESeq2 on pseudobulk of all celltypes from cell_type_class for each contrast
-
-# %%
-# %%capture
-
-# Run deseq2 on pseudobulk all cell types
-
 for contrast in contrasts:
+    print(f"Working on: {contrast['name']}")
+
     de_res = {}
+    missing_res = []
 
     for ct in cell_types:
-        print("Working on: " + ct)
-        pb_ct = pdata[pdata.obs[cell_type_class] == ct].copy()
+        ct_fs = re.sub("[^0-9a-zA-Z]+", "_", ct)
+        deseq_file = Path(deseq_path, contrast["name"], ct_fs, ct_fs + "_DESeq2_result.tsv")
+        if os.path.exists(deseq_file):
+            print(f"Reading DESeq2 result for {ct}: {deseq_file}")
+            de_df = pd.read_csv(deseq_file, sep="\t")
+            # de_df.set_index("gene_id", inplace=True)
+            de_res[ct] = de_df.set_index("gene_id")
+            de_res[ct].index.name = None
+        else:
+            print(f"No DESeq2 result found for: {ct}")
+            missing_res.append(ct)
 
-        # Build DESeq2 object
-        dds = DeseqDataSet(
-            adata=pb_ct,
-            design_factors="condition",
-            refit_cooks=True,
-            n_cpus=cpus,
-        )
-
-        # Compute LFCs
-        dds.deseq2()
-
-        # Extract contrast between LUAD vs LUSC
-        stat_res = DeseqStats(dds, contrast=["condition", contrast["condition"], contrast["reference"]], n_cpus=cpus)
-
-        # Compute Wald test
-        stat_res.summary()
-
-        # Shrink LFCs
-        coeff = "condition_" + contrast["name"]
-        stat_res.lfc_shrink(coeff=coeff)
-
-        # Register cell type results
-        de_res[ct] = stat_res.results_df
-
-    # Register results for current contrast
+    contrast["cell_types"] = de_res.keys()
     contrast["de_res"] = de_res
 
-
-# %% [markdown]
-# Check if we got a result
-
-# %%
-contrasts[0]["de_res"]["T cell"]
 
 # %% [markdown]
 # ### Reformat and concat the deseq2 results for each contrast
@@ -327,7 +288,7 @@ for contrast in contrasts:
 # ## Infer pathway activities with consensus
 #
 # Run `decoupler` consensus method to infer pathway activities from the DESeq2 result using the `PROGENy` models.\
-# We use the obtained gene level `t-value` statistics stored in `stat`.
+# We use the obtained gene level `wald` statistics stored in `stat`.
 
 # %%
 # Infer pathway activities with consensus
@@ -353,7 +314,7 @@ for contrast in contrasts:
     plt.ioff()
     p_count = 0
 
-    for ct in cell_types:
+    for ct in contrast["cell_types"]:
         bp = dc.plot_barplot(contrast["pathway_acts"], ct, top=25, vertical=False, return_fig=True, figsize=[5, 3])
         plt.title(ct)
         plt.tight_layout()
@@ -422,7 +383,7 @@ for contrast in contrasts:
 # %% [markdown]
 # ### Generate target gene expression plots for significant pathways
 #
-# We genereate expression plots for the target genes of pathways with significant activity differences using the DESeq2 `t-values` (y-axis) and the interaction `weight` (x-axis).\
+# We genereate expression plots for the target genes of pathways with significant activity differences using the DESeq2 `wald` statistics (y-axis) and the interaction `weight` (x-axis).\
 # The results are stored in `png, pdf, svg` format.
 
 # %% [markdown]
@@ -459,6 +420,7 @@ for contrast in contrasts:
 
     # Initialize the figure panel
     fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(ncols * 4, nrows * 4))
+    empty_axs = axs.flatten()
     axs = {": ".join(sig_pw.values()): {"ax": ax, "sig_pw": sig_pw} for sig_pw, ax in zip(sig_pathways, axs.flatten())}
 
     # Run dc.plot_targets for all significant celltype/pathway combinations using the stat values from deseq2
@@ -473,6 +435,11 @@ for contrast in contrasts:
             ax=ax_sig_pw["ax"],
         )
         ax_sig_pw["ax"].set_title(key)
+
+    # set empty axes invisible
+    for ax in range(len(axs), len(empty_axs)):
+        empty_axs[ax].set_visible(False)
+
     plt.tight_layout()
     plt.show()
 
@@ -506,7 +473,7 @@ for contrast in contrasts:
 # ## Infer transcription factor activities with consensus
 #
 # Run `decoupler` consensus method to infer transcription factor activities from the DESeq2 result using the `DoRothEA` models.\
-# We use the obtained gene level `t-value` statistics stored in `stat`.
+# We use the obtained gene level `wald` statistics stored in `stat`.
 
 # %%
 # Infer transcription factor activities with consensus
@@ -533,7 +500,7 @@ for contrast in contrasts:
     plt.ioff()
     p_count = 0
 
-    for ct in cell_types:
+    for ct in contrast["cell_types"]:
         bp = dc.plot_barplot(contrast["tf_acts"], ct, top=25, vertical=False, return_fig=True, figsize=[5, 3])
         plt.title(ct)
         plt.tight_layout()
@@ -623,7 +590,7 @@ for contrast in contrasts:
 
 # %%
 # Define transcription factors of interest
-tf_of_interest = ["NFKB1", "SOX2", "MYC"]
+tf_of_interest = ["CEBPA", "SOX13", "SPI1"]
 
 for contrast in contrasts:
     # Extract logFCs and pvals
@@ -634,7 +601,7 @@ for contrast in contrasts:
     # get sig ct for tfoi
     n_sig = 0
     sig_tf = {}
-    for ct in cell_types:
+    for ct in contrast["cell_types"]:
         for tfoi in tf_of_interest:
             if tf_pvals.loc[ct][tfoi] < 0.05:
                 if tfoi not in sig_tf:
@@ -710,7 +677,7 @@ for contrast in contrasts:
 
 # %% [markdown]
 # ### Run GSEA
-# We use the t-value (Wald test) from the DESeq2 result to rank the genes.
+# We use the wald statistics (`stat`) from the DESeq2 result to rank the genes.
 
 # %%
 for contrast in contrasts:
@@ -968,7 +935,7 @@ cyto_sig = pd.melt(
 cyto_sig
 
 # %% [markdown]
-# Run the decoupler consensus scoring function using the DESeq2 `t-values` values and the `CytoSig` net
+# Run the decoupler consensus scoring function using the DESeq2 `wald` statistics and the `CytoSig` net
 
 # %%
 # Infer cytokin signaling with consensus

@@ -98,6 +98,7 @@ intersphinx_mapping = {
     "sccoda": ("https://sccoda.readthedocs.io/en/latest/", None),
     "seaborn": ("https://seaborn.pydata.org/", None),
     "pandas": ("https://pandas.pydata.org/docs/", None),
+    "scanpy": ("https://scanpy.readthedocs.io/en/stable", None),
 }
 
 # List of patterns, relative to source directory, that match files and

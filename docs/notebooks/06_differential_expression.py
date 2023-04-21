@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.4
+#       jupytext_version: 1.14.5
 #   kernelspec:
 #     display_name: Python [conda env:conda-2023-atlas-protocol]
 #     language: python
@@ -36,21 +36,18 @@
 # %%
 # %load_ext autoreload
 # %autoreload 2
-import glob
+import re
 import subprocess as sp
+from pathlib import Path
 
 import decoupler as dc
 import matplotlib.pyplot as plt
-from anndata import AnnData
-import numpy as np
 import pandas as pd
 import scanpy as sc
-from IPython.display import display
-from pathlib import Path
+from anndata import AnnData
 from tqdm.contrib.concurrent import process_map
 
 import atlas_protocol_scripts as aps
-import re
 
 # %% [markdown]
 # ## 2. Load input data
@@ -219,6 +216,14 @@ for ct, tmp_pdata in pdata_by_cell_type.items():
 
 # %% [markdown]
 # 3. Execute the DESeq2 script
+#
+# :::{important}
+# Always specify at least `dataset` as a covariate when performing differential expression analysis,
+# to account for batch effects.
+#
+# It may make sense to include other covariates (sex, tumor stage, age, ...) into the model
+# depending on your dataset and research question.
+# :::
 
 
 # %%
@@ -231,6 +236,7 @@ def _run_deseq(cell_type: str, pseudobulk: AnnData):
         "--cond_col", "condition",
         "--c1", "LUAD",
         "--c2", "LUSC",
+        "--covariate_formula", "+ dataset + sex",
         "--resDir", prefix,
         "--prefix", prefix.stem,
     ]
@@ -261,160 +267,58 @@ for ct in pdata_by_cell_type:
 # %% [markdown]
 # ## 8. Make volcano plots
 
+# %% [markdown]
+# 1. Convert DE results to p-value/logFC matrices as used by decoupler
+
 # %%
+logFCs, pvals = aps.tl.long_form_df_to_decoupler(pd.concat(de_results.values()), p_col="padj")
+
+# %% [markdown]
+# 2. Make a volcano plot for all cell-types of interest (e.g. B cells)
+
+# %%
+fig, ax = plt.subplots()
+dc.plot_volcano(logFCs, pvals, "B cell", name="B cell", top=10, sign_thr=0.1, lFCs_thr=0.5, ax=ax)
+ax.set_ylabel("-log10(FDR)")
+ax.set_xlabel("log2(FC)")
+fig.show()
 
 # %% [markdown]
 # 4. Normalize pseudobulk to log counts per million (logCPM)
 
-# %%
-sc.pp.normalize_total(pdata, target_sum=1e6)
-sc.pp.log1p(pdata)
-
 # %% [markdown]
-# ##  Function: Run DESeq2 on pseudobulk of all cell types from cell_type
-
-
-# %% [markdown]
-# ## 7. Create pseudobulk for each celltype using the coarse cell type annotation
-
-# %%
-# Contrasts
-contrasts = [
-    {"name": "LUSC_vs_LUAD", "condition": "LUSC", "reference": "LUAD"},
-]
-
-# %%
-# Cell type name without space for file name
-cell_type_fn = [j.replace(" ", "_").replace("/", "_") for i, j in enumerate(cell_type)]
-
-# %%
-# Get results from folder
-for contrast in contrasts:
-    de_res = {}
-
-    for ct in cell_type_fn:
-        csv_file = glob.glob(deseq_resdir + "/" + contrast["name"] + "_" + ct + "_adata_DESeq2_result.tsv")
-        if len(csv_file) > 0:
-            res_df = pd.read_csv(csv_file[0], sep="\t")
-            res_df = res_df.set_index(["gene_id"])
-            ct = ct.replace("_", " ")
-            # Register cell type results
-            de_res[ct] = res_df
-    contrast["de_res"] = de_res
-
-# %%
-# Concat and build the log2FoldChange change matrix
-for contrast in contrasts:
-    lfc_mat = (
-        pd.concat(
-            [
-                res.loc[:, ["log2FoldChange"]].rename(columns={"log2FoldChange": ct})
-                for ct, res in contrast["de_res"].items()
-            ],
-            axis=1,
-            sort=True,
-        )
-        .fillna(0)
-        .T
-    )
-    contrast["lfc_mat"] = lfc_mat
-    display(lfc_mat)
-
-# %%
-# Concat and build the fdr matrix
-for contrast in contrasts:
-    fdr_mat = (
-        pd.concat(
-            [res.loc[:, ["padj"]].rename(columns={"padj": ct}) for ct, res in contrast["de_res"].items()],
-            axis=1,
-            sort=True,
-        )
-        .fillna(1)
-        .T
-    )
-    contrast["fdr_mat"] = fdr_mat
-    display(fdr_mat)
-
-# %%
-# Concat and build the stat matrix
-for contrast in contrasts:
-    stat_mat = (
-        pd.concat(
-            [res.loc[:, ["stat"]].rename(columns={"stat": ct}) for ct, res in contrast["de_res"].items()],
-            axis=1,
-            sort=True,
-        )
-        .fillna(0)
-        .T
-    )
-    contrast["stat_mat"] = stat_mat
-    display(stat_mat)
-
-# %% [markdown]
-# ##  Volcano plots of expression
+# ## 9. Plot genes of interest as paired dotplots
 #
-# Genereate volcano plots for each of the cell types on the DE genes with significant activity differences using the DESeq2 log2foldChange and padj values.
-
-# %%
-for contrast in contrasts:
-    # Extract logFCs and pvals
-    logFCs = contrast["lfc_mat"]
-    pvals = contrast["fdr_mat"]
-
-    n_sig = 0
-    sig_tf = {}
-    cell_type = list(logFCs.index)
-    ct_dict = {}
-    ct_dict["cell_type"] = []
-    for ct in cell_type:
-        ct_dict["cell_type"].append({"ct": ct})
-
-    # generate a volcano plot panel for each cell type
-    for ct in ct_dict.keys():
-        n_sig = len(ct_dict[ct])
-
-        # Calculate nrows based on ncol
-        ncols = 4 if n_sig >= 4 else n_sig
-        nrows = int(np.ceil(n_sig / ncols))
-        fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(ncols * 4, nrows * 4))
-        empty_axs = iter(axs.flatten())
-
-        for ct, ax in zip(cell_type, empty_axs):
-            dc.plot_volcano(
-                logFCs,
-                pvals,
-                ct,
-                name=ct,
-                top=10,
-                sign_thr=0.1,
-                lFCs_thr=0.5,
-                return_fig=False,
-                ax=ax,
-            )
-        for ax in empty_axs:
-            ax.set_visible(False)
-
-        plt.tight_layout()
-        plt.show()
+# Here, we are visualizing the actual expression values for each sample for all genes and cell-types of interest
 
 # %% [markdown]
-# ##  Pairwise expression plot.
-#
-# Visualize the top n (e.g 5) genes for each cell type, colored by dataset.
+# 1. Define list of genes to visualize
 
 # %%
-for ct in cell_type:
-    print("\t\t\t" + ct)
-    plot_paired(
-        pdata,
-        "condition",
-        var_names=list(contrast["de_res"][ct].index)[0:5],
-        n_cols=5,
-        panel_size=(2, 4),
-        show_legend=True,
-        hue="dataset",
-        size=10,
-        ylabel="normalized counts",
-    )
+genes = ["EIF1AY", "GSTM1", "XIST", "MYRF"]
+
+# %% [markdown]
+# 2. Normalize pseudobulk to counts per million (CPM)
 
 # %%
+for tmp_pdata in pdata_by_cell_type.values():
+    sc.pp.normalize_total(tmp_pdata, target_sum=1e6)
+    sc.pp.log1p(tmp_pdata)
+
+# %% [markdown]
+# 3. Make plot (e.g. B cells)
+
+# %%
+# Get p-values for genes of interest
+tmp_pvalues = de_results["B cell"].set_index("gene_id").loc[genes, "padj"].values
+
+aps.pl.plot_paired(
+    pdata_by_cell_type["B cell"],
+    groupby="condition",
+    var_names=genes,
+    hue="dataset",
+    ylabel="log(CPM+1)",
+    panel_size=(2, 4),
+    pvalues=tmp_pvalues,
+    pvalue_template=lambda x: f"DESeq2 FDR={x:.3f}",
+)

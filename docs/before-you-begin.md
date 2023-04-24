@@ -78,10 +78,19 @@ For this protocol, we provide both the TPM matrix and the clinical annotation ta
 curl TODO
 ```
 
-## Obtain reference genome GTF file
+## Obtain reference genome GTF files
 
-For remapping gene symbols, you need a GTF file with genome annotations.
+To facilitate integration of the four datasets, it is important to standardize the provided gene IDs. In this tutorial, we will download the GTF files from [gencode](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human)/[ensembl](https://ftp.ensembl.org/pub/) that were originally used to annotate the genes in each dataset, enabling us to remap the provided gene symbols. This remapping is necessary to resolve ambiguity in gene symbols and ensure that only counts mapped to the same genomic location are merged, using unique Ensembl IDs as identifiers.
 
 ```bash
-curl TODO
+mkdir ../tables && cd ../tables && wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_33/gencode.v33.primary_assembly.annotation.gtf.gz
+../bin/gtf_to_table.sh gencode.v33.primary_assembly.annotation.gtf.gz gencode.v33_gene_annotation_table.txt gencode
+rm gencode.v33.primary_assembly.annotation.gtf.gz
+
+wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/gencode.v32.primary_assembly.annotation.gtf.gz
+../bin/gtf_to_table.sh gencode.v32.primary_assembly.annotation.gtf.gz gencode.v32_gene_annotation_table.txt gencode
+rm gencode.v32.primary_assembly.annotation.gtf.gz
+
+wget https://ftp.ensembl.org/pub/release-109/gtf/homo_sapiens/Homo_sapiens.GRCh38.109.gtf.gz
+../bin/gtf_to_table.sh Homo_sapiens.GRCh38.109.gtf.gz Homo_sapiens.GRCh38.109_gene_annotation_table.txt ensembl
 ```

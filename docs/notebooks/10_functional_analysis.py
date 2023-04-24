@@ -206,7 +206,6 @@ for contrast in contrasts:
     print(f"Working on: {contrast['name']}")
 
     de_res = {}
-    missing_res = []
 
     for ct in cell_types:
         ct_fs = re.sub("[^0-9a-zA-Z]+", "_", ct)
@@ -214,12 +213,10 @@ for contrast in contrasts:
         if os.path.exists(deseq_file):
             print(f"Reading DESeq2 result for {ct}: {deseq_file}")
             de_df = pd.read_csv(deseq_file, sep="\t")
-            # de_df.set_index("gene_id", inplace=True)
             de_res[ct] = de_df.set_index("gene_id")
             de_res[ct].index.name = None
         else:
             print(f"No DESeq2 result found for: {ct}")
-            missing_res.append(ct)
 
     contrast["cell_types"] = de_res.keys()
     contrast["de_res"] = de_res

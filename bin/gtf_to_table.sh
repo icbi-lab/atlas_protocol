@@ -1,72 +1,38 @@
 #!/bin/bash
-# https://www.biostars.org/p/140471/#140798
+# Modified from https://www.biostars.org/p/140471/#140798
 
-usage() {
-    echo "Usage: $0 -f input_file -o output_file -a annotation"
-    echo "Possible options for annotation: gencode, ensembl"
-    exit 1
-}
-
-while getopts ":f:o:a:" opt; do
-    case ${opt} in
-        f )
-            file=$OPTARG
-            ;;
-        o )
-            out=$OPTARG
-            ;;
-        a )
-            if [ "$OPTARG" = "gencode" ]; then
-                anno="gencode"
-            elif [ "$OPTARG" = "ensembl" ]; then
-                anno="ensembl"
-            else
-                echo "Invalid annotation type provided."
-                usage
-            fi
-            ;;
-        \? )
-            usage
-            ;;
-        : )
-            echo "Invalid option: $OPTARG requires an argument"
-            usage
-            ;;
-    esac
-done
-shift $((OPTIND -1))
-
-if [ -z "$file" ] || [ -z "$out" ] || [ -z "$anno" ]; then
-    echo "Missing required arguments."
-    usage
+# Check for correct number of arguments
+if [ "$#" -ne 3 ]; then
+  echo "Usage: $0 <input_file> <output_file> <gtf_source>"
+  exit 1
 fi
 
-if [ ! -f "$file" ]; then
-    echo "Input file not found."
-    usage
-fi
+# Input and output file names
+file="$1"
+out="$2"
+gtf_source="$3"
 
-if [ "${anno}" == "gencode" ]; then
-    zcat "$file" | \
-    awk 'BEGIN{FS="\t"}{split($9,a,";"); if($3~"gene") print a[1]"\t"a[3]"\t"$1":"$4"-"$5"\t"a[2]"\t"$7}' | \
-    sed 's/gene_id "//' | \
-    sed 's/gene_id "//' | \
-    sed 's/gene_type "//'| \
-    sed 's/gene_name "//' | \
-    sed 's/"//g' | \
-    awk 'BEGIN{FS="\t"}{split($3,a,"[:-]"); print $1"\t"$2"\t"a[1]"\t"a[2]"\t"a[3]"\t"$4"\t"$5"\t"a[3]-a[2];}' | \
-    sed "1i\Geneid\tGeneSymbol\tChromosome\tStart\tEnd\tClass\tStrand\tLength" > "$out"
-elif [ "${anno}" == "ensembl" ]; then
-    zcat "$file" | \
-    awk 'BEGIN{FS="\t"}{split($9,a,";"); if($3~"gene") print a[1]"\t"a[3]"\t"$1":"$4"-"$5"\t"a[5]"\t"$7"\t"gensub(/.*gene_version \"([^\"]+)\".*/, "\\1", "g", $9)"\t"$2}' | \
-    sed 's/gene_id "//' | \
-    sed 's/gene_id "//' | \
-    sed 's/gene_biotype "//'| \
-    sed 's/gene_name "//' | \
-    sed 's/gene_biotype "//' | \
-    sed 's/"//g' | sed 's/ //g' | \
-    sed '1igene_id\tGeneSymbol\tChromosome\tClass\tStrand\tGeneVersion\tGeneSource' > "$out"
+# Perform the zcat, awk, and sed commands based on annotation gtf source, and save the output to the specified output file
+if [ "$gtf_source" == "gencode" ]; then
+  zcat "$file" | \
+  awk 'BEGIN{FS="\t"; OFS=","}{split($9,a,";"); if($3~"gene") print a[1], gensub(/^ +| +$/,"", "g", a[3]), $1, $4, $5, gensub(/^ +| +$/,"", "g", a[2]), $7, $5-$4;}' | \
+  sed 's/gene_id "//' | \
+  sed 's/gene_id "//' | \
+  sed 's/gene_type "//'| \
+  sed 's/gene_name "//' | \
+  sed 's/"//g' | \
+  sed "1i\Geneid,GeneSymbol,Chromosome,Start,End,Class,Strand,Length" > "$out"
+elif [ "$gtf_source" == "ensembl" ]; then
+  zcat "$file" | \
+  grep -v '^#' | \
+  awk '$3 == "gene"' | \
+  cut -f 1,4-5,7,9 | \
+  awk -F'\t' -v OFS='\t' '{ split($NF, a, /[;\"]+/); $NF=""; for (i=2; i<=length(a); i+=2) $(NF+1) = a[i]; if ($6 == "havana" || $6 == "ensembl") $6 = ""; $6 = $6 "." $7; $7 = ""; } 1' | \
+  awk -F'\t' -v OFS='\t' '{ print }' | \
+  cut -f 1-4,6,8,9,10 | \
+  sed 's/\t/,/g' | \
+  awk -F',' -v OFS=',' 'BEGIN{print "gene_id","gene_name","chromosome","start","end","gene_biotype","gene_source","strand","length"} { gsub("havana", "", $6); gsub("ensembl", "", $6); print $5, $6, $1, $2, $3, $8, $7, $4, $3-$2+1}' > "$out"
 else
-    echo "Invalid annotation type provided."
-    usage
+  echo "Invalid gtf source. Please specify 'gencode' or 'ensembl'."
+  exit 1
 fi

@@ -49,6 +49,8 @@
 .. autosummary::
     :toctree: generated
 
+    pl.reshape_clustermap
+    pl.save_fig_mfmt
     pl.significance_heatmap
     pl.plot_paired
 ```

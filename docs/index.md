@@ -28,6 +28,7 @@ notebooks/05_cell_type_annotation.ipynb
 
 notebooks/06_differential_expression.ipynb
 notebooks/09_compositional.ipynb
+notebooks/10_functional_analysis.ipynb
 notebooks/15_cell_cell_communication.ipynb
 notebooks/10_bulk_integration.ipynb
 

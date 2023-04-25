@@ -30,4 +30,7 @@ __pycache__/
 # IDEs
 /.idea/
 /.vscode/
+
+# remote kernel files
+rik_kernel-*
 .ipynb_checkpoints

@@ -7,9 +7,9 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python [conda env:conda-2023-atlas-protocol]
-#     language: python
-#     name: conda-env-conda-2023-atlas-protocol-py
+#     display_name: 'SSH apollo-15 apollo-15: mmCD45'
+#     language: ''
+#     name: rik_ssh_apollo_15_apollo15mmcd45
 # ---
 
 # %% [markdown]
@@ -66,21 +66,6 @@ import statsmodels.stats.multitest
 from IPython.display import display
 
 import atlas_protocol_scripts as aps
-
-# # silence matplotlib logger
-# logging.getLogger("matplotlib").setLevel(logging.ERROR)
-
-# # silence warnings
-# warnings.simplefilter(action="ignore")
-# warnings.filterwarnings("ignore")
-
-# # set PATH env variable to conda env for altair_saver which is looking for npm
-# # os.environ["PATH"] = os.path.dirname(os.environ["_"]) + os.pathsep + os.environ["PATH"]
-
-# cpus = 16
-# os.environ["NUMBA_NUM_THREADS"] = str(cpus)
-# threadpool_limits(cpus)
-
 
 # %% [markdown]
 # ## 1. Configure paths
@@ -282,40 +267,39 @@ show_n = 2
 for contrast in contrasts:
     print(contrast["name"])
 
-    plt.ioff()
-    p_count = 0
+    with plt.ioff():
+        p_count = 0
 
-    for ct in contrast["cell_types"]:
-        bp = dc.plot_barplot(
-            contrast["pathway_acts"],
-            ct,
-            top=25,
-            vertical=False,
-            return_fig=True,
-            figsize=[5, 3],
-        )
-        plt.title(ct)
-        plt.tight_layout()
-
-        if bp is not None:
-            ct_fname = ct.replace(" ", "_").replace("/", "_")
-            aps.pl.save_fig_mfmt(
-                bp,
-                res_dir=f"{contrast['res_dir']}/pathways/",
-                filename=f"{contrast['name']}_pw_acts_barplot_{ct_fname}",
-                fmt="all",
-                plot_provider="mpl",
+        for ct in contrast["cell_types"]:
+            bp = dc.plot_barplot(
+                contrast["pathway_acts"],
+                ct,
+                top=25,
+                vertical=False,
+                return_fig=True,
+                figsize=[5, 3],
             )
-            # Only show the first two plots in the notebook
-            p_count += 1
-            if p_count <= show_n:
-                display(bp)
-            else:
-                print(f"Not showing: {ct}")
+            plt.title(ct)
+            plt.tight_layout()
 
-            plt.close()
-        else:
-            print("No plot for: " + contrast["name"] + ":" + ct)
+            if bp is not None:
+                ct_fname = ct.replace(" ", "_").replace("/", "_")
+                aps.pl.save_fig_mfmt(
+                    bp,
+                    res_dir=f"{contrast['res_dir']}/pathways/",
+                    filename=f"{contrast['name']}_pw_acts_barplot_{ct_fname}",
+                    fmt="all",
+                )
+                # Only show the first two plots in the notebook
+                p_count += 1
+                if p_count <= show_n:
+                    display(bp)
+                else:
+                    print(f"Not showing: {ct}")
+
+                plt.close()
+            else:
+                print("No plot for: " + contrast["name"] + ":" + ct)
 
     print(f"\nResults stored in: {contrast['res_dir']}/pathways")
 
@@ -352,7 +336,6 @@ for contrast in contrasts:
             res_dir=f"{contrast['res_dir']}/pathways/",
             filename=f"{contrast['name']}_pw_acts_heatmap",
             fmt="all",
-            plot_provider="mpl",
         )
         plt.show()
 
@@ -427,7 +410,6 @@ for contrast in contrasts:
         res_dir=f"{contrast['res_dir']}/pathways/",
         filename=f"{contrast['name']}_pw_target_expression",
         fmt="all",
-        plot_provider="mpl",
     )
 
     print(f"\nResults stored in: {contrast['res_dir']}/pathways")
@@ -475,44 +457,43 @@ show_n = 2
 for contrast in contrasts:
     print(contrast["name"])
 
-    plt.ioff()
-    p_count = 0
+    with plt.ioff():
+        p_count = 0
 
-    for ct in contrast["cell_types"]:
-        bp = dc.plot_barplot(
-            contrast["tf_acts"],
-            ct,
-            top=25,
-            vertical=False,
-            return_fig=True,
-            figsize=[5, 3],
-        )
-        plt.title(ct)
-        plt.tight_layout()
-
-        if bp is not None:
-            ct_fname = ct.replace(" ", "_").replace("/", "_")
-            aps.pl.save_fig_mfmt(
-                bp,
-                res_dir=f"{contrast['res_dir']}/transcription_factors/",
-                filename=f"{contrast['name']}_tf_acts_barplot_{ct_fname}",
-                fmt="all",
-                plot_provider="mpl",
+        for ct in contrast["cell_types"]:
+            bp = dc.plot_barplot(
+                contrast["tf_acts"],
+                ct,
+                top=25,
+                vertical=False,
+                return_fig=True,
+                figsize=[5, 3],
             )
+            plt.title(ct)
+            plt.tight_layout()
 
-            # Only show the first two plots in the notebook
-            p_count += 1
-            if p_count <= show_n:
-                display(bp)
+            if bp is not None:
+                ct_fname = ct.replace(" ", "_").replace("/", "_")
+                aps.pl.save_fig_mfmt(
+                    bp,
+                    res_dir=f"{contrast['res_dir']}/transcription_factors/",
+                    filename=f"{contrast['name']}_tf_acts_barplot_{ct_fname}",
+                    fmt="all",
+                )
+
+                # Only show the first two plots in the notebook
+                p_count += 1
+                if p_count <= show_n:
+                    display(bp)
+                else:
+                    print(f"Not showing: {ct}")
+
+                plt.close()
+
             else:
-                print(f"Not showing: {ct}")
+                print("No plot for: " + contrast["name"] + ":" + ct)
 
-            plt.close()
-
-        else:
-            print("No plot for: " + contrast["name"] + ":" + ct)
-
-    print(f"\nResults stored in: {contrast['res_dir']}/transcription_factors")
+        print(f"\nResults stored in: {contrast['res_dir']}/transcription_factors")
 
 
 # %% [markdown]
@@ -558,7 +539,6 @@ for contrast in contrasts:
             res_dir=f"{contrast['res_dir']}/transcription_factors/",
             filename=f"{contrast['name']}_tf_acts_heatmap",
             fmt="all",
-            plot_provider="mpl",
         )
         plt.tight_layout()
         plt.show()
@@ -636,7 +616,6 @@ for contrast in contrasts:
             res_dir=f"{contrast['res_dir']}/transcription_factors/",
             filename=f"{contrast['name']}_{tf}_target_expression",
             fmt="all",
-            plot_provider="mpl",
         )
 
     print(f"\nResults stored in: {contrast['res_dir']}/transcription_factors")
@@ -753,7 +732,6 @@ for contrast in contrasts:
         res_dir=f"{contrast['res_dir']}/MSigDB/",
         filename=f"{contrast['name']}_MSigDB_GSEA_heatmap",
         fmt="all",
-        plot_provider="mpl",
     )
     plt.show()
 
@@ -771,8 +749,7 @@ top_n = 4
 # show top n celltypes
 for contrast in contrasts:
     print(contrast["name"] + "\n")
-    display(np.max(contrast["gsea_norm"].T).sort_values().tail(top_n))
-    display(np.min(contrast["gsea_padj"].T).sort_values().head(top_n))
+    display(np.min(contrast["gsea_padj"].T, axis=0).sort_values().head(top_n))
 
 # %%
 for contrast in contrasts:
@@ -782,7 +759,7 @@ for contrast in contrasts:
     gsea_norm[gsea_norm < 0] = 0
 
     # get top n celltypes
-    top_celltypes = np.min(gsea_padj.T).sort_values().head(top_n).index.values
+    top_celltypes = np.min(gsea_padj.T, axis=0).sort_values().head(top_n).index.values
 
     with plt.rc_context({"figure.figsize": (8, 3)}):
         for ct in top_celltypes:
@@ -810,7 +787,6 @@ for contrast in contrasts:
                     res_dir=f"{contrast['res_dir']}/MSigDB/",
                     filename=f"{contrast['name']}_top_terms_barplot_{ct_fname}",
                     fmt="all",
-                    plot_provider="mpl",
                 )
             else:
                 print("No plot for: " + contrast["name"] + ":" + ct)
@@ -827,9 +803,10 @@ for contrast in contrasts:
 # %%
 top_n = 6
 
-# %%
 # show top n celltypes
-np.max(contrast["gsea_norm"].T, axis=0).sort_values().tail(top_n)
+for contrast in contrasts:
+    print(contrast["name"] + "\n")
+    display(np.min(contrast["gsea_padj"].T, axis=0).sort_values().tail(top_n))
 
 # %%
 for contrast in contrasts:
@@ -883,7 +860,6 @@ for contrast in contrasts:
         res_dir=f"{contrast['res_dir']}/MSigDB/",
         filename=f"{contrast['name']}_top_terms_target_expression",
         fmt="all",
-        plot_provider="mpl",
     )
 
     print(f"\nResults stored in: {contrast['res_dir']}/MSigDB")
@@ -978,7 +954,6 @@ for contrast in contrasts:
             res_dir=f"{contrast['res_dir']}/cytokine_signaling/",
             filename=f"{contrast['name']}_signaling_heatmap",
             fmt="all",
-            plot_provider="mpl",
         )
         plt.show()
 
@@ -996,5 +971,3 @@ for contrast in contrasts:
     os.makedirs(tsv_dir, mode=0o750, exist_ok=True)
     contrast["cs_acts"].to_csv(f"{tsv_dir}/{contrast['name']}_CytoSig_acts.tsv", sep="\t")
     contrast["cs_pvals"].to_csv(f"{tsv_dir}/{contrast['name']}_CytoSig_pvals.tsv", sep="\t")
-
-# %%

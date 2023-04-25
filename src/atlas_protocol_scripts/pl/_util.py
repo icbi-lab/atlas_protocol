@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 from typing import Literal
 
+import altair as alt
+import matplotlib as mpl
 import seaborn
 
 
@@ -52,7 +54,6 @@ def save_fig_mfmt(
     res_dir: str,
     filename: str,
     fmt: Literal["all", "pdf", "png", "svg"] = "all",
-    plot_provider: Literal["mpl", "altair"] = "mpl",
     **kwargs,
 ) -> None:
     """Save a matplotlib or altair figure in the specified format(s) to the given directory with the given filename.
@@ -69,9 +70,6 @@ def save_fig_mfmt(
         The format in which to save the figure.
         Default is "all", which saves the figure in all supported formats.
         Supported formats are "pdf", "svg", "png".
-    plot_provider
-        The plotting library used to create the figure.
-        Default is "mpl" for matplotlib. "altair" for altair.
     **kwargs
         Additional keyword arguments to be passed to the savefig method of matplotlib or the save method of altair.
 
@@ -84,6 +82,14 @@ def save_fig_mfmt(
     AssertionError: If the specified plot_provider is not supported or if the specified fmt is not supported.
     """
     supported_formats = ["pdf", "svg", "png", "all"]
+
+    # Determine the plot provider
+    plot_provider = "unsupported"
+
+    if type(fig) in [mpl.figure.Figure, seaborn.matrix.ClusterGrid]:
+        plot_provider = "mpl"
+    if type(fig) is alt.vegalite.v4.api.LayerChart:
+        plot_provider = "altair"
 
     assert plot_provider in ["mpl", "altair"], "Plot provider not supported: " + plot_provider
     assert fmt in supported_formats, (

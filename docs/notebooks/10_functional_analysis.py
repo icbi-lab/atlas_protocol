@@ -7,9 +7,9 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: 'SSH apollo-15 apollo-15: mmCD45'
-#     language: ''
-#     name: rik_ssh_apollo_15_apollo15mmcd45
+#     display_name: Python [conda env:conda-2023-atlas-protocol]
+#     language: python
+#     name: conda-env-conda-2023-atlas-protocol-py
 # ---
 
 # %% [markdown]
@@ -19,9 +19,25 @@
 # To facilitate the interpretation of scRNA-seq gene expression readouts and their differences across conditions we can summarize the information
 # and infer pathway activities from prior knowledge.
 #
-# In this notebook we use `decoupler` {cite}`Badia-i-Mompel2022` a tool that contains different statistical methods to extract biological activities from omics data using prior knowledge.
+# In this notebook we use `decoupler` {cite}`Badia-i-Mompel2022`, a tool that contains different statistical methods to extract biological activities from omics data using prior knowledge.
 # We run the method on the results from the differential gene expression analysis that compared scRNAseq data from LUAD and LUSC using celltype specific
 # pseudo-bulk data.
+#
+# :::{note}
+#
+# Curated gene sets are readily available from MSigDB {cite}`Liberzon2015` and include amongst others gene
+# ontology (GO)-terms {cite}`GeneOntologyConsortium2004`, KEGG {cite}`Kanehisa2000` pathways and Reactome {cite}`Gillespie2021` pathways. In addition,
+# several recent efforts focus on the curation of high-quality gene signatures: PROGENy {cite}`Schubert2018`
+# provides a set of reliable signatures for 14 cancer pathways derived from hundreds of perturbation
+# experiments. Unlike signatures based on genes directly involved in a pathway (e.g. from KEGG),
+# these signatures consist of downstream "pathway-responsive genes" that are differentially expressed
+# when the pathway is perturbed (figure 1.10). This is beneficial as pathways tend to be regulated
+# via post-translational modifications. Naturally, these modifications cannot be measured using
+# RNA-sequencing, but requires either phosphoproteomics or targeted antibody assays. CytoSig
+#  {cite}`Jiang2021` is a similar effort focussing on cytokine signaling signatures. Based on more than 2000
+# cytokine treatment experiments, the authors derived 52 signatures. DoRothEA {cite}`Garcia-Alonso2019` integrates
+# transcription factor activity signatures from manually curated resources, large-scale experiments
+# :::
 #
 # We infer activities of the following types:
 #
@@ -35,11 +51,9 @@
 # %autoreload 2
 
 # %%
-import logging
 import os
 import re
 import urllib.request
-import warnings
 from pathlib import Path
 
 import decoupler as dc
@@ -50,46 +64,46 @@ import scanpy as sc
 import seaborn as sns
 import statsmodels.stats.multitest
 from IPython.display import display
-from threadpoolctl import threadpool_limits
 
 import atlas_protocol_scripts as aps
 
-# silence matplotlib logger
-logging.getLogger("matplotlib").setLevel(logging.ERROR)
+# # silence matplotlib logger
+# logging.getLogger("matplotlib").setLevel(logging.ERROR)
 
-# silence warnings
-warnings.simplefilter(action="ignore")
-warnings.filterwarnings("ignore")
+# # silence warnings
+# warnings.simplefilter(action="ignore")
+# warnings.filterwarnings("ignore")
 
-# set PATH env variable to conda env for altair_saver which is looking for npm
-os.environ["PATH"] = os.path.dirname(os.environ["_"]) + os.pathsep + os.environ["PATH"]
+# # set PATH env variable to conda env for altair_saver which is looking for npm
+# # os.environ["PATH"] = os.path.dirname(os.environ["_"]) + os.pathsep + os.environ["PATH"]
 
-cpus = 16
-os.environ["NUMBA_NUM_THREADS"] = str(cpus)
-threadpool_limits(cpus)
+# cpus = 16
+# os.environ["NUMBA_NUM_THREADS"] = str(cpus)
+# threadpool_limits(cpus)
 
 
 # %% [markdown]
 # ## 1. Configure paths
 #
-# * `adata_path`: Path to anndata file
-# * `deseq_path`: Path to directory where DESeq2 differential expression results are stored
-# * `results_dir`: Path to results directory. Will be created automatically.
+# 1. Define paths to input files
+#     * `adata_path`: Path to anndata file
+#     * `deseq_path`: Path to directory where DESeq2 differential expression results are stored
 
 # %%
 adata_path = "../../data/input_data_zenodo/atlas-integrated-annotated.h5ad"
 deseq_path = "../../data/results/differential_expression"
 
-results_dir = "../../data/results/10_functional_analysis"
-
 # %% [markdown]
-# Create results directory
+# 2. Define and create output directory
 
 # %%
+results_dir = "../../data/results/10_functional_analysis"
 os.makedirs(results_dir, mode=0o750, exist_ok=True)
 
+# %% [markdown]
+# 3. Define paths to network/model files. These will be automatically downloaded and stored in these files in a later step.
+
 # %%
-# Path to network/model files (will be automatically generated, no need to change)
 tfnet_file = Path(results_dir, "tf_net_dorothea_hs.tsv")
 pwnet_file = Path(results_dir, "pw_net_progeny_hs.tsv")
 msigdb_file = Path(results_dir, "msigdb_hs.tsv")
@@ -99,7 +113,7 @@ cytosig_file = Path(results_dir, "cytosig_signature.tsv")
 # ## 2. Load data
 
 # %% [markdown]
-# ### anndata object
+# 1. Load AnnData object
 
 # %%
 adata = sc.read_h5ad(adata_path)
@@ -107,30 +121,32 @@ adata = sc.read_h5ad(adata_path)
 print(f"Anndata has: {adata.shape[0]} cells and {adata.shape[1]} genes")
 
 # %% [markdown]
-# ### PROGENy and DoRothEA data
+# 2. Retrieve and load DoRothEA data. We limit the analysis to the three highest confidence levels A, B and C.
 
 # %%
-# Retrieve Dorothea db (levels A, B, C, only)
-if Path(tfnet_file).exists():
+if tfnet_file.exists():
     tfnet = pd.read_csv(tfnet_file, sep="\t")
 else:
     tfnet = dc.get_dorothea(organism="human", levels=["A", "B", "C"])
     tfnet.to_csv(tfnet_file, sep="\t", index=False)
 
+# %% [markdown]
+# 3. Retrieve and load PROGENy data
+
 # %%
 # Retrieve Progeny db
-if Path(pwnet_file).exists():
+if pwnet_file.exists():
     pwnet = pd.read_csv(pwnet_file, sep="\t")
 else:
     pwnet = dc.get_progeny(organism="human", top=100)
     pwnet.to_csv(pwnet_file, sep="\t", index=False)
 
 # %% [markdown]
-# ### MSigDB data
+# 4. Retrieve and load data from MSigDB. Here, we filter for the "hallmark" gene sets.
 
 # %%
 # Retrieve MSigDB resource
-if Path(msigdb_file).exists():
+if msigdb_file.exists():
     msigdb = pd.read_csv(msigdb_file, sep="\t")
 else:
     msigdb = dc.get_resource("MSigDB")
@@ -143,15 +159,16 @@ else:
 
 
 # %% [markdown]
-# ### CytoSig data
+# 5. Retrieve and load the CytoSig signatures
 
 # %%
 # Retrieve CytoSig signature
-if Path(cytosig_file).exists():
+if cytosig_file.exists():
     cytosig_signature = pd.read_csv(cytosig_file, sep="\t")
 else:
     urllib.request.urlretrieve(
-        "https://github.com/data2intelligence/CytoSig/raw/master/CytoSig/signature.centroid.expand", cytosig_file
+        "https://github.com/data2intelligence/CytoSig/raw/master/CytoSig/signature.centroid.expand",
+        cytosig_file,
     )
     cytosig_signature = pd.read_csv(cytosig_file, sep="\t")
 
@@ -165,6 +182,8 @@ else:
 # * `name`: contrast name
 # * `condition`: test group
 # * `reference`: reference group
+#
+# For this tutorial, we only show one single comparison: LUAD vs. LUSC.
 
 # %%
 contrasts = [
@@ -173,7 +192,7 @@ contrasts = [
 contrasts
 
 # %% [markdown]
-# ### Create result directories for each contrast
+# 1. Create result directories for each contrast
 
 # %%
 for contrast in contrasts:
@@ -182,15 +201,13 @@ for contrast in contrasts:
     contrast["res_dir"] = res_dir
 
 # %% [markdown]
-# ### Define cell type class to use
-#
-# Specifiy for which cell type annotation level we want to run the functional analyses
+# 2. Define column in `adata.obs` that contains the desired cell-type annotation. This must match the column used in the {ref}`differential_expression` section.
 
 # %%
 cell_type_class = "cell_type_coarse"
 
 # %% [markdown]
-# Register all possible cell types in the annotation class
+# 3. Make list of all cell types in the specified column
 
 # %%
 cell_types = adata.obs[cell_type_class].unique()
@@ -200,6 +217,9 @@ for ct in cell_types:
 
 # %% [markdown]
 # ## 4. Read DESeq2 results
+
+# %% [markdown]
+# 1. Load TSV files created in the {ref}`differential_expression` step.
 
 # %%
 for contrast in contrasts:
@@ -212,9 +232,7 @@ for contrast in contrasts:
         deseq_file = Path(deseq_path, contrast["name"], ct_fs, ct_fs + "_DESeq2_result.tsv")
         if os.path.exists(deseq_file):
             print(f"Reading DESeq2 result for {ct}: {deseq_file}")
-            de_df = pd.read_csv(deseq_file, sep="\t")
-            de_res[ct] = de_df.set_index("gene_id")
-            de_res[ct].index.name = None
+            de_res[ct] = pd.read_csv(deseq_file, sep="\t").assign(cell_type=ct)
         else:
             print(f"No DESeq2 result found for: {ct}")
 
@@ -223,68 +241,26 @@ for contrast in contrasts:
 
 
 # %% [markdown]
-# ### Reformat and concat the deseq2 results for each contrast
-#
-# * Build `stat` matrix `stat_mat`
+# 2. Convert DE results to p-value/logFC/stat matrices as used by decoupler
 
 # %%
 # Concat and build the stat matrix
 for contrast in contrasts:
-    stat_mat = (
-        pd.concat(
-            [res.loc[:, ["stat"]].rename(columns={"stat": ct}) for ct, res in contrast["de_res"].items()],
-            axis=1,
-            sort=True,
-        )
-        .fillna(0)
-        .T
-    )
-    contrast["stat_mat"] = stat_mat
-    display(stat_mat)
-
-# %% [markdown]
-# * Build `log2FoldChange` matrix `lfc_mat`
-
-# %%
-# Concat and build the log2FoldChange change matrix
-for contrast in contrasts:
-    lfc_mat = (
-        pd.concat(
-            [
-                res.loc[:, ["log2FoldChange"]].rename(columns={"log2FoldChange": ct})
-                for ct, res in contrast["de_res"].items()
-            ],
-            axis=1,
-            sort=True,
-        )
-        .fillna(0)
-        .T
+    lfc_mat, fdr_mat = aps.tl.long_form_df_to_decoupler(pd.concat(contrast["de_res"].values()), p_col="padj")
+    stat_mat, _ = aps.tl.long_form_df_to_decoupler(
+        pd.concat(contrast["de_res"].values()), log_fc_col="stat", p_col="padj"
     )
     contrast["lfc_mat"] = lfc_mat
-    display(lfc_mat)
-
-# %% [markdown]
-# * Build `padj` matrix `fdr_mat`
-
-# %%
-# Concat and build the fdr
-for contrast in contrasts:
-    fdr_mat = (
-        pd.concat(
-            [res.loc[:, ["padj"]].rename(columns={"padj": ct}) for ct, res in contrast["de_res"].items()],
-            axis=1,
-            sort=True,
-        )
-        .fillna(1)
-        .T
-    )
+    contrast["stat_mat"] = stat_mat
     contrast["fdr_mat"] = fdr_mat
+    display(lfc_mat)
     display(fdr_mat)
+    display(stat_mat)
 
 # %% [markdown]
 # ## 5. Infer pathway activities with consensus
 #
-# Run `decoupler` consensus method to infer pathway activities from the DESeq2 result using the `PROGENy` models.\
+# 1. Run `decoupler` consensus method to infer pathway activities from the DESeq2 result using the `PROGENy` models.\
 # We use the obtained gene level `wald` statistics stored in `stat`.
 
 # %%
@@ -297,9 +273,7 @@ for contrast in contrasts:
     display(pathway_acts)
 
 # %% [markdown]
-# ### Generate per cell type pathway activity barplots
-#
-# We use the decoupler `plot_barplot` function for plotting the pathway activities of each celltype and save the result in `png, pdf, svg` format.
+# 2. Generate per cell type pathway activity barplots. We use the decoupler `plot_barplot` function for plotting the pathway activities of each celltype and save the result in `png, pdf, svg` format.
 
 # %%
 # show maximum n plots in notebook, all are saved as files
@@ -312,7 +286,14 @@ for contrast in contrasts:
     p_count = 0
 
     for ct in contrast["cell_types"]:
-        bp = dc.plot_barplot(contrast["pathway_acts"], ct, top=25, vertical=False, return_fig=True, figsize=[5, 3])
+        bp = dc.plot_barplot(
+            contrast["pathway_acts"],
+            ct,
+            top=25,
+            vertical=False,
+            return_fig=True,
+            figsize=[5, 3],
+        )
         plt.title(ct)
         plt.tight_layout()
 
@@ -423,7 +404,7 @@ for contrast in contrasts:
     # Run dc.plot_targets for all significant celltype/pathway combinations using the stat values from deseq2
     for key, ax_sig_pw in axs.items():
         dc.plot_targets(
-            de_res[ax_sig_pw["sig_pw"]["ct"]],
+            de_res[ax_sig_pw["sig_pw"]["ct"]].set_index("gene_id"),
             stat="stat",
             source_name=ax_sig_pw["sig_pw"]["pw"],
             net=pwnet,
@@ -498,7 +479,14 @@ for contrast in contrasts:
     p_count = 0
 
     for ct in contrast["cell_types"]:
-        bp = dc.plot_barplot(contrast["tf_acts"], ct, top=25, vertical=False, return_fig=True, figsize=[5, 3])
+        bp = dc.plot_barplot(
+            contrast["tf_acts"],
+            ct,
+            top=25,
+            vertical=False,
+            return_fig=True,
+            figsize=[5, 3],
+        )
         plt.title(ct)
         plt.tight_layout()
 
@@ -841,7 +829,7 @@ top_n = 6
 
 # %%
 # show top n celltypes
-np.max(contrast["gsea_norm"].T).sort_values().tail(top_n)
+np.max(contrast["gsea_norm"].T, axis=0).sort_values().tail(top_n)
 
 # %%
 for contrast in contrasts:
@@ -849,7 +837,7 @@ for contrast in contrasts:
     pvals = contrast["fdr_mat"]
 
     # get top n celltypes
-    top_celltypes = np.min(contrast["gsea_padj"].T).sort_values().head(top_n).index.values
+    top_celltypes = np.min(contrast["gsea_padj"].T, axis=0).sort_values().head(top_n).index.values
 
     # get top term of each celltype
     top_term = {}
@@ -927,7 +915,10 @@ for contrast in contrasts:
 # %%
 # reformat the signature matrix
 cyto_sig = pd.melt(
-    cytosig_signature.rename_axis("target").reset_index(), var_name="source", id_vars=["target"], value_name="weight"
+    cytosig_signature.rename_axis("target").reset_index(),
+    var_name="source",
+    id_vars=["target"],
+    value_name="weight",
 ).reindex(columns=["source", "target", "weight"])
 cyto_sig
 
@@ -1005,3 +996,5 @@ for contrast in contrasts:
     os.makedirs(tsv_dir, mode=0o750, exist_ok=True)
     contrast["cs_acts"].to_csv(f"{tsv_dir}/{contrast['name']}_CytoSig_acts.tsv", sep="\t")
     contrast["cs_pvals"].to_csv(f"{tsv_dir}/{contrast['name']}_CytoSig_pvals.tsv", sep="\t")
+
+# %%

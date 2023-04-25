@@ -13,6 +13,7 @@
 # ---
 
 # %% [markdown]
+# (differential_expression)=
 # # Differential gene expression
 #
 # One of the most commonly asked questions when comparing between conditions is which genes

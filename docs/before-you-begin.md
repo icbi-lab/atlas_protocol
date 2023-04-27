@@ -84,13 +84,13 @@ To facilitate integration of the four datasets, it is important to standardize t
 
 ```bash
 mkdir ../tables && cd ../tables && wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_33/gencode.v33.primary_assembly.annotation.gtf.gz
-../bin/gtf_to_table.sh gencode.v33.primary_assembly.annotation.gtf.gz gencode.v33_gene_annotation_table.txt gencode
+../bin/gtf_to_table.sh gencode.v33.primary_assembly.annotation.gtf.gz gencode.v33_gene_annotation_table.csv gencode
 rm gencode.v33.primary_assembly.annotation.gtf.gz
 
 wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/gencode.v32.primary_assembly.annotation.gtf.gz
-../bin/gtf_to_table.sh gencode.v32.primary_assembly.annotation.gtf.gz gencode.v32_gene_annotation_table.txt gencode
+../bin/gtf_to_table.sh gencode.v32.primary_assembly.annotation.gtf.gz gencode.v32_gene_annotation_table.csv gencode
 rm gencode.v32.primary_assembly.annotation.gtf.gz
 
 wget https://ftp.ensembl.org/pub/release-109/gtf/homo_sapiens/Homo_sapiens.GRCh38.109.gtf.gz
-../bin/gtf_to_table.sh Homo_sapiens.GRCh38.109.gtf.gz Homo_sapiens.GRCh38.109_gene_annotation_table.txt ensembl
+../bin/gtf_to_table.sh Homo_sapiens.GRCh38.109.gtf.gz Homo_sapiens.GRCh38.109_gene_annotation_table.csv ensembl
 ```

@@ -45,19 +45,6 @@ DATASETS = {
 datasets = {dataset_id: sc.read_h5ad(path) for dataset_id, path in DATASETS.items()}
 
 
-# %% [markdown]
-# where to donload annotations? [gencode v33](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_33/gencode.v33.primary_assembly.annotation.gtf.gz) ftp download + bring into suitable format
-
-# %% language="bash"
-# mkdir ../../tables && cd ../../tables && wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_33/gencode.v33.primary_assembly.annotation.gtf.gz
-# ../bin/Convert_gencode_gtf_to_annotation_table.sh gencode.v33.primary_assembly.annotation.gtf.gz > gencode.v33_gene_annotation_table.txt
-# rm gencode.v33.primary_assembly.annotation.gtf.gz
-#
-# wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/gencode.v32.primary_assembly.annotation.gtf.gz
-# ../bin/Convert_gencode_gtf_to_annotation_table.sh gencode.v32.primary_assembly.annotation.gtf.gz > gencode.v32_gene_annotation_table.txt
-# rm gencode.v32.primary_assembly.annotation.gtf.gz
-
-
 # %%
 # Get gene annotations from gtf file, remove Ensembl version number and append back sex chromosome info to new column “Ensembl”
 def load_gtf(gtf_path):

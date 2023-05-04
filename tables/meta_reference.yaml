@@ -1,56 +1,57 @@
 dataset:
-  values:
-  - author_year
-  description: Unique ID composed of first author and year of study
+    values:
+        - author_year
+    description: Unique ID composed of first author and year of study
 sample:
-  values:
-  - sample_id
-  description: Unique ID for each sample
+    values:
+        - sample_id
+    description: Unique ID for each sample
 origin:
-  values:
-  - tumor_primary
-  - normal_adjacent
-  - tumor_edge
-  - tumor_middle
-  - tumor_metastasis
-  - nan
-  description: Sample origin
+    values:
+        - tumor_primary
+        - normal_adjacent
+        - tumor_edge
+        - tumor_middle
+        - tumor_metastasis
+        - nan
+    description: Sample origin
 tissue:
-  values:
-  - adrenal
-  - brain
-  - liver
-  - lung
-  - lymph_node
-  - pleura
-  description: Sample tissue
+    values:
+        - adrenal
+        - brain
+        - liver
+        - lung
+        - lymph_node
+        - pleura
+    description: Sample tissue
 condition:
-  values:
-  - LUAD
-  - LSCC
-  - NSCLC
-  description: Lung adenocarcinoma (LUAD) and lung squamous cell carcinoma (LSCC)
-    are the most common subtypes of non-small-cell lung cancer (NSCLC)
+    values:
+        - LUAD
+        - LSCC
+        - NSCLC
+    description:
+        Lung adenocarcinoma (LUAD) and lung squamous cell carcinoma (LSCC)
+        are the most common subtypes of non-small-cell lung cancer (NSCLC)
 patient:
-  values:
-  - patient_id
-  description: Unique ID for each patient
+    values:
+        - patient_id
+    description: Unique ID for each patient
 sex:
-  values:
-  - female
-  - male
-  description: Reportet patient sex
+    values:
+        - female
+        - male
+    description: Reportet patient sex
 age:
-  values:
-  - int
-  description: Reportet patient age as integer
+    values:
+        - int
+    description: Reportet patient age as integer
 cell_type_salcher:
-  values:
-  - cell_type
-  description: Annotated cell types from Salcher et al
+    values:
+        - cell_type
+    description: Annotated cell types from Salcher et al
 platform:
-  values:
-  - 10x_3p_v2
-  - smartseq2
-  - bd_rhapsody
-  description: Protocol that was used for single cell sequencing
+    values:
+        - 10x_3p_v2
+        - smartseq2
+        - bd_rhapsody
+    description: Protocol that was used for single cell sequencing

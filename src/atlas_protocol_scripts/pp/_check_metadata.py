@@ -1,4 +1,4 @@
-import pandas as pd
+
 
 def validate_obs(adata, ref_meta_dict, keys_to_ignore=None):
     """
@@ -9,10 +9,12 @@ def validate_obs(adata, ref_meta_dict, keys_to_ignore=None):
         ref_meta_dict (dict): Reference metadata dictionary.
         keys_to_ignore (list, optional): List of keys to ignore during validation. Defaults to None.
 
-    Raises:
+    Raises
+    ------
         ValueError: If missing columns or invalid values are found in the AnnData object.
 
-    Returns:
+    Returns
+    -------
         None
 
     Note:
@@ -32,7 +34,7 @@ def validate_obs(adata, ref_meta_dict, keys_to_ignore=None):
     expected_cols = [k for k in ref_meta_dict.keys() if k not in keys_to_ignore]
     missing_cols = [c for c in expected_cols if c not in adata.obs.columns]
     if missing_cols:
-        missing_cols_str = ', '.join(missing_col for missing_col in expected_cols if missing_col in missing_cols)
+        missing_cols_str = ", ".join(missing_col for missing_col in expected_cols if missing_col in missing_cols)
         raise ValueError(f"Missing columns in adata.obs: {missing_cols_str}")
 
     # Check if keys are present as columns and verify values if present (except keys_to_ignore)

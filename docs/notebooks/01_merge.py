@@ -12,27 +12,38 @@
 #     name: conda-env-CRCA-2023-crca-scanpy-py
 # ---
 
-# %% [markdown]
-# # Merge data and harmonized annotations
+# %% [markdown] tags=[]
+# # Merge datasets, harmonize annotations and metadata
 
 # %% [markdown]
-# Integrating single-cell RNA-seq datasets from multiple sources can provide numerous benefits, including increased statistical power, validation of findings across diverse conditions, and the identification of novel gene expression patterns that may be challenging to detect in individual datasets. Ideally, access to raw FASTQ files would allow mapping to the same reference genome and annotations. However, in many cases, only processed data is available, which presents some challenges during data integration. For instance, the datasets may have been mapped to different genome annotations or versions, and sometimes provide only gene symbols.
-# While it is possible to perform gene symbol-based integration, this approach is not always accurate, as gene symbols are not unique and can change between annotation versions. In contrast, before integrating the datasets we will map the available gene ids to the more consistent ensembl gene IDs that will enhance the accuracy and reproducibility of downstream analyses.
+# Integrating single-cell RNA-seq datasets from multiple sources can provide numerous benefits, including increased statistical power, validation of findings across diverse conditions, and the identification of novel gene expression patterns that may be challenging to detect in individual datasets. However, the merging process presents two major challenges: harmonizing gene annotations and metadata across datasets to ensure consistency in downstream analyses.
 #
-# The two most commonly used gene annotation sources are GENCODE and Ensembl, which offer standardized gene models and annotations for various organisms. Between different versions the ensembl gene ids will only change if the gene structure changes.
+# :::{note} gene annotations
+#
+# Ideally, access to raw FASTQ files would allow mapping to the same reference genome and annotations. However, in many cases, only processed data is available that may have been mapped to different genome annotations or versions. The two most commonly used gene annotation sources are GENCODE and Ensembl, which offer standardized gene models and annotations for various organisms. Best case scenario processed datasets have unique gene ids such as ensembl_ids, unfortunaetly often only gene symbols are provided that are not unique and can change across annotation versions and sources. sometimes provide only gene symbols.
+# While it is possible to perform gene symbol-based integration, this approach is not always accurate, as gene symbols are not unique and can change between annotation versions. In contrast, before integrating the datasets we will map the available gene ids to the more consistent ensembl gene IDs that will enhance the accuracy and reproducibility of downstream analyses. :::
+#
+# Between different versions the ensembl gene ids will only change if the gene structure changes. 
 #
 # Explain a bit more here? (e.g in newer versions new genes might be added, nothing we can do about it,
 #                             if the gene id is the same the mapped gene region should have stayed the same. -> perfect!
 #                             if the gene id has changed that means the gene structure has changed and we should not use it any more!)
 
 # %% [markdown] tags=[]
-# ## 1. Load the required libaries
+# ## 1. Load the required libaries and data
 
 # %%
-# import atlas_protocol_scripts as aps
 import anndata
+import atlas_protocol_scripts as aps
+import numpy as np
 import pandas as pd
 import scanpy as sc
+import yaml
+from scipy.sparse import csr_matrix
+
+# %%
+out_dir = "../../data/results/qc/"
+# !mkdir -p {out_dir}
 
 # %%
 DATASETS = {
@@ -44,156 +55,231 @@ DATASETS = {
 # %%
 datasets = {dataset_id: sc.read_h5ad(path) for dataset_id, path in DATASETS.items()}
 
+# %%
+# check that adata.X contains integers - requirement for scvi-tools integration
+errors = {}
+for name, adata in datasets.items():
+    try:
+        assert np.all(np.modf(adata.X.data)[0] == 0)
+    except AssertionError:
+        errors[name] = "X does not contain all integers"
+errors
 
 # %%
-# Get gene annotations from gtf file, remove Ensembl version number and append back sex chromosome info to new column “Ensembl”
-def load_gtf(gtf_path):
-    gtf = pd.read_csv(gtf_path, delimiter="\t", skipinitialspace=True, dtype={"Start": object, "End": object})
-    gtf.insert(
-        0,
-        "Ensembl",
-        gtf["Geneid"].str.replace(r"\.[^.]+$", "")
-        + gtf["Geneid"].str.contains("_PAR_Y").replace({True: "_PAR_Y", False: ""}),
-    )
-    return gtf
+# round length corrected plate-based study
+datasets["maynard_2020"].X = csr_matrix(
+    np.ceil(datasets["maynard_2020"].X.toarray()).astype(int)
+)
 
-
-# %%
-gencode_v43 = load_gtf("../../tables/gencode.v43_gene_annotation_table.txt")
-gencode_v33 = load_gtf("../../tables/gencode.v33_gene_annotation_table.txt")
-gencode_v32 = load_gtf("../../tables/gencode.v32_gene_annotation_table.txt")
-
+# %% [markdown] tags=[]
+# ## 2. Harmonize metadata
 
 # %% [markdown]
+# Before integrating the data we need to make sure to harmonize the metdata across our datasets. We will start by loading a pre-defined reference metadata yaml file that lists all columns we would like to have as well as the respective values that are allowed in every column. Using a helper function we can now quickly query what metadata is missing and if all values follow the same conventions.
+#
+# (Note: possible to use sfaira for metadata harmonization)
+
+# %%
+# Read the YAML file and load it into a dictionary
+file_path = "../../tables/meta_reference.yaml"
+with open(file_path, "r") as f:
+    ref_meta_dict = yaml.load(f, Loader=yaml.Loader)
+
+# Assign range of allowed age values to dict key - yaml looks bloated otherwise ...
+ref_meta_dict["age"]["values"] = list(range(0, 120))
+
+# %%
+# List reference columns from meta yaml file
+ref_meta_cols = []
+for key, sub_dict in ref_meta_dict.items():
+    ref_meta_cols.append(key)
+ref_meta_cols
+
+# %% [markdown]
+# First we will check if all columns are present across all datasets
+
+# %%
+# loop over datasets and apply validate_obs function
+invalid_columns = {}
+for key, adata in datasets.items():
+    try:
+        aps.pp.validate_obs(adata, ref_meta_dict)
+    except ValueError as e:
+        invalid_columns[key] = e.args[0]
+invalid_columns
+
+# %%
+# search reference dict for missing columns
+aps.pp.search_dict(ref_meta_dict, ["condition"])
+
+# %%
+aps.pp.search_dict(ref_meta_dict, ["dataset", "platform"])
+
+# %%
+datasets["maynard_2020"].obs["dataset"] = "maynard_2020"
+datasets["maynard_2020"].obs["platform"] = "smartseq2"
+
+datasets["ukim-v"].obs["dataset"] = "ukim-v"
+datasets["ukim-v"].obs["platform"] = "bd_rhapsody"
+datasets["ukim-v"].obs["cell_type_salcher"] = "Unknown"
+
+# %%
+# loop over datasets and apply validate_obs function
+invalid_columns = {}
+for key, adata in datasets.items():
+    try:
+        aps.pp.validate_obs(
+            adata,
+            ref_meta_dict,
+            keys_to_ignore=["dataset", "sample", "patient", "cell_type_salcher"],
+        )
+    except ValueError as e:
+        invalid_columns[key] = e.args[0]
+invalid_columns
+
+# %% [markdown]
+# We will ignore a few columns that contain unique ids as well as cell types - although we could of course define every allowed value in the yaml file.
+
+# %%
+# subset columns and keep only reference columns from meta yaml file
+for adata in datasets:
+    datasets[adata].obs = datasets[adata].obs[ref_meta_cols]
+
+# %% [markdown]
+# ## 3. Harmonize gene annotations
+
+# %% [markdown]
+# Before intgration we want ensembl ids without version numbers as var_names. 
 # note: we will have the best match between gene ids and symbols if we use the annotation that was used for mapping, can usually be found in the methods section of the paper or on GEO etc.
 
+# %%
+# load gtf for gene mapping
+gtf_path = "../../tables/gencode.v32_gene_annotation_table.csv"
+gtf = pd.read_csv(gtf_path)
+gtf = aps.pp.append_duplicate_suffix(df=gtf, column="GeneSymbol", sep="-")
+gene_ids = gtf.set_index("GeneSymbol")["Geneid"].to_dict()
 
 # %%
-def update_gene_annotation(adata, gtf, var_col="var_names", gtf_col="GeneSymbol"):
-    """Annotates the genes in adata.var with their corresponding gene annotations from a gene annotation file
-    and keeps the original columns in adata.var. Adata.var_names is set to “Ensembl” column from gtf file.
+datasets["lambrechts_2018"].var = (
+    datasets["lambrechts_2018"].var.rename_axis("symbol").reset_index()
+)
+datasets["lambrechts_2018"].var["ensembl"] = (
+    datasets["lambrechts_2018"].var["symbol"].map(gene_ids)
+)
+datasets["lambrechts_2018"].var_names = (
+    datasets["lambrechts_2018"].var["ensembl"].apply(aps.pp.remove_gene_version)
+)
 
-    Parameters
-    ----------
-    adata : AnnData object
-    gtf : pandas.DataFrame object
-        A data frame containing gene annotation information
-    var_col : str, optional (default: “var_names”)
-        The name of the column in adata.var to merge on
-    gtf_col : str, optional (default: “GeneSymbol”)
-        The name of the column in gtf to merge on
+datasets["maynard_2020"].var.reset_index(inplace=True)
+datasets["maynard_2020"].var_names = (
+    datasets["maynard_2020"].var["ensg"].apply(aps.pp.remove_gene_version)
+)
 
-    Returns
-    -------
-    annotated AnnData object
-        Contains the mapped genes and their corresponding annotations.
-
-    Raises
-    ------
-    KeyError: If the “gtf_col” column is not present in the gene annotation data.
-    ValueError: If the “var_col” column is not unique.
-    """
-    if gtf_col not in gtf.columns:
-        raise KeyError(f"The gtf gene annotation data must contain a column named '{gtf_col}'")
-
-    if var_col != "var_names":
-        adata = adata.copy()
-        var_index_name = adata.var_names.name
-        adata.var["original_var_names"] = adata.var_names
-        adata.var_names = adata.var[var_col]
-    try:
-        assert adata.var_names.is_unique
-    except AssertionError:
-        raise ValueError(f"'{var_col}' must be unique.")
-
-    # Filter and remove duplicates from gene annotation data
-    mapped_genes = gtf[gtf[gtf_col].isin(adata.var_names)].drop_duplicates(gtf_col, keep=False)
-    mapped_genes = mapped_genes.reset_index(drop=True)
-
-    # Filter adata for mapped/notmapped genes
-    mapped_adata = adata[:, adata.var_names.isin(mapped_genes[gtf_col])].copy()
-
-    mapped_adata.var = pd.merge(
-        pd.DataFrame(mapped_adata.var).rename_axis("var_names").reset_index(),
-        mapped_genes,
-        how="left",
-        left_on="var_names",
-        right_on=[gtf_col],
-        validate="m:1",
-    ).set_index("Ensembl")
-
-    if var_col != "var_names":
-        del mapped_adata.var["var_names"]
-        mapped_adata.var.rename(columns={"original_var_names": var_index_name}, inplace=True)
-
-    return mapped_adata
-
+datasets["ukim-v"].var.reset_index(inplace=True)
+datasets["ukim-v"].var["ensembl"] = datasets["ukim-v"].var["Gene"].map(gene_ids)
+datasets["ukim-v"].var_names = (
+    datasets["ukim-v"].var["ensembl"].apply(aps.pp.remove_gene_version)
+)
 
 # %%
-params = [
-    {"dataset": "maynard_2020", "gtf": gencode_v33, "var_col": "ensg", "gtf_col": "Geneid"},
-    {"dataset": "lambrechts_2018", "gtf": gencode_v32, "var_col": "var_names", "gtf_col": "GeneSymbol"},
-    {"dataset": "ukim-v", "gtf": gencode_v32, "var_col": "var_names", "gtf_col": "GeneSymbol"},
-]
+# look how many genes were not mapped to ensembl ids
+unmapped_dict = {}
+for name, data in datasets.items():
+    unmapped_genes = aps.pp.find_unmapped_genes(data)
+    print(name, ":", len(unmapped_genes))
+    unmapped_dict[name] = unmapped_genes
 
 # %%
-mapped_adata = {}
-for param in params:
-    dataset = param.pop("dataset")
-    adata = datasets[dataset]
-    mapped_adata[dataset] = update_gene_annotation(adata, **param)
+# remove genes without ensembl ids from the datasets
+datasets["ukim-v"] = datasets["ukim-v"][:, ~(datasets["ukim-v"].var_names == "nan")]
+
+# %%
+# aggregate counts with the same id
+for adata in datasets:
+    duplicated_ids = (
+        datasets[adata].var_names[datasets[adata].var_names.duplicated()].unique()
+    )
+    datasets[adata] = aps.pp.aggregate_duplicate_gene_ids(
+        datasets[adata], duplicated_ids
+    )
+    assert datasets[adata].var_names.is_unique
+    assert datasets[adata].obs_names.is_unique
+
+# %%
+# clean input data by removing not needed data
+for col in ["counts_length_scaled", "tpm"]:
+    del datasets["maynard_2020"].layers[col]
+
+del datasets["ukim-v"].obsm["surface_protein"]
 
 # %% [markdown]
-# # Have a look at not_mapped_genes + additional annotation of these
-
-# %%
-mapped = datasets["lambrechts_2018"].var_names.isin(mapped_adata["lambrechts_2018"].var["var_names"])
-datasets["lambrechts_2018"][:, ~mapped].var
-
-# %%
-mapped = datasets["ukim-v"].var_names.isin(mapped_adata["ukim-v"].var["var_names"])
-datasets["ukim-v"][:, ~mapped].var
+# ## 4. Concat datasets to single adata
 
 # %% [markdown]
-# todo: show how to add not mapped genes manually
-
-# %% [markdown]
-# # Concat datasets to single adata
+# Finally the datasets are ready to be merged. We will also use the latest gene annotation from ensembl to update the gene ids and symbols. We could also use gencode.
 
 # %%
 # Outer join to keep all genes, fill_value=0 assuming that the removed gene expression was 0 or close to zero!
-adata = anndata.concat(mapped_adata, join="outer", fill_value=0)
+adata = anndata.concat(datasets, index_unique="_", join="outer", fill_value=0)
 
+# %%
+# Get latest ensembl annoation to update our genes
+gtf_path = "../../tables/Homo_sapiens.GRCh38.109_gene_annotation_table.csv"
+gtf = pd.read_csv(gtf_path)
+gtf["ensembl"] = gtf["gene_id"].apply(aps.pp.remove_gene_version)
+gtf["var_names"] = gtf["gene_name"].fillna(gtf["ensembl"])
+gtf = aps.pp.append_duplicate_suffix(df=gtf, column="var_names", sep="-")
+
+# %%
 adata.var = pd.merge(
-    pd.DataFrame({"Ensembl": adata.var_names}),
-    gencode_v43,
+    pd.DataFrame({"ensembl": adata.var_names}),
+    gtf,
     how="left",
-    on="Ensembl",
+    on="ensembl",
     validate="m:1",
-).set_index("Ensembl", drop=False)
+).set_index("ensembl")
 
-adata.obs_names_make_unique()
-assert adata.obs_names.is_unique
+# Reorder by gtf (i.e. chromosome position)
+gene_index = gtf[gtf["ensembl"].isin(adata.var_names)]["ensembl"].values
+adata = adata[:, gene_index]
 
-# Reorder by annotation and append back annotation info
-assert adata.var_names.is_unique
-adata = adata[:, gencode_v43.loc[gencode_v43["Ensembl"].isin(adata.var_names), "Ensembl"].values]
+adata.var = adata.var.reset_index("ensembl")
 
-adata.var_names = adata.var["GeneSymbol"]
+adata.var_names = adata.var["var_names"].values
 adata.var_names_make_unique()
+del adata.var["var_names"]
 adata.var_names.name = None
 
-# %% [markdown]
-# -> now we could for example only keep genes that are protein coding
+# %%
+# Make sure samples are unique
+adata.obs["sample"] = [
+    f"{dataset}_{sample}"
+    for dataset, sample in zip(adata.obs["dataset"], adata.obs["sample"])
+]
 
 # %%
-adata_protein = adata[:, adata.var["Class"] == "protein_coding"].copy()
+# Append dataset and sample info to barcodes
+adata.obs_names = (
+    adata.obs["dataset"].astype(str)
+    + "_"
+    + adata.obs["sample"].astype(str)
+    + "_"
+    + adata.obs_names.str.split("_").str[0]
+)
 
 # %%
-adata_protein.var
+# apparently the latest ensembl GRCh38.109 annotation has a few gene symbols that already have a suffix "-1", etc. In this cases the var_name will be for example SNORD115-1-1
+# adata.var[adata.var_names.isin(["SNORD116", "SNORD116-1", "SNORD116-2", "SNORD115", "SNORD115-1", "SNORD115-1-1"])]
 
-# %% [markdown]
-# todo: remove adata.obs columns not needed in downstream analysis
+# %%
+assert adata.var_names.is_unique
+assert adata.obs_names.is_unique
 
 # %% [markdown]
 # todo: have a threshold that removes genes if not present in at least 25 percent of studies?
+
+# %% [markdown]
+# ## 5. Store result
+
+# %%
+adata.write_h5ad(f"{out_dir}/adata.h5ad")

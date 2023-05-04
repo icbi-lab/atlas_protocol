@@ -52,4 +52,5 @@ platform:
   values:
   - 10x_3p_v2
   - smartseq2
+  - bd_rhapsody
   description: Protocol that was used for single cell sequencing

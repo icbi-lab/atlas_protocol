@@ -41,8 +41,9 @@ sex:
   - male
   description: Reportet patient sex
 age:
-  values:
-  - int
+  type: int
+  min: 0
+  max: 120
   description: Reportet patient age as integer
 cell_type_salcher:
   values:

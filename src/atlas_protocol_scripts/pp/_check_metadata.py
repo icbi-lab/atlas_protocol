@@ -1,21 +1,36 @@
-import pandas as pd
+from typing import Dict, List, Optional
 
-def validate_obs(adata, ref_meta_dict, keys_to_ignore=None):
+import pandas as pd
+import anndata
+
+
+def validate_obs(
+    adata: anndata.AnnData,
+    ref_meta_dict: Dict[str, Dict[str, List]],
+    keys_to_ignore: Optional[List[str]] = None,
+) -> None:
     """
     Validates the .obs slot of an AnnData object against a reference metadata dictionary.
 
-    Args:
-        adata (anndata.AnnData): AnnData object to be validated.
-        ref_meta_dict (dict): Reference metadata dictionary.
-        keys_to_ignore (list, optional): List of keys to ignore during validation. Defaults to None.
+    Parameters:
+    ----------
+        adata : anndata.AnnData
+            AnnData object to be validated.
+        ref_meta_dict : dict
+            Reference metadata dictionary.
+        keys_to_ignore : list[str], optional
+            List of keys to ignore during validation. Defaults to None.
 
     Raises:
+    ------
         ValueError: If missing columns or invalid values are found in the AnnData object.
 
     Returns:
+    -------
         None
 
     Note:
+    -----
         This function validates the metadata information in the `.obs` attribute of the AnnData object `adata` against a
         reference metadata dictionary `ref_meta_dict`. The `ref_meta_dict` should be a dictionary where the keys represent
         the metadata columns to be validated, and the values are dictionaries with a 'values' key containing a list of
@@ -32,7 +47,9 @@ def validate_obs(adata, ref_meta_dict, keys_to_ignore=None):
     expected_cols = [k for k in ref_meta_dict.keys() if k not in keys_to_ignore]
     missing_cols = [c for c in expected_cols if c not in adata.obs.columns]
     if missing_cols:
-        missing_cols_str = ', '.join(missing_col for missing_col in expected_cols if missing_col in missing_cols)
+        missing_cols_str = ", ".join(
+            missing_col for missing_col in expected_cols if missing_col in missing_cols
+        )
         raise ValueError(f"Missing columns in adata.obs: {missing_cols_str}")
 
     # Check if keys are present as columns and verify values if present (except keys_to_ignore)
@@ -43,15 +60,67 @@ def validate_obs(adata, ref_meta_dict, keys_to_ignore=None):
         if key not in adata.obs.columns:
             raise ValueError(f"Missing columns in adata.obs: {key}")
 
+        # Verify type of corresponding column
+        column_type = adata.obs[key].dtype
+        expected_type = value.get("type", None)
+
+        if expected_type is not None and column_type != expected_type:
+            offending_value = adata.obs[key][
+                adata.obs[key].apply(lambda x: type(x) != expected_type)
+            ].iloc[0]
+            raise ValueError(
+                f"Unexpected data type found in column '{key}'. Expected '{expected_type}', but found '{offending_value}'."
+            )
+
         # Verify values in corresponding column
-        allowed_values = value["values"]
+        allowed_values = value.get("values", None)
         column_values = adata.obs[key].unique()
-        invalid_values = [val for val in column_values if val not in allowed_values]
-        if invalid_values:
-            raise ValueError(f"Invalid values found in column '{key}': {invalid_values}")
+
+        if "min" in value and "max" in value:
+            min_value = value["min"]
+            max_value = value["max"]
+            invalid_values = [
+                val for val in column_values if not (min_value <= val <= max_value)
+            ]
+            if invalid_values:
+                raise ValueError(
+                    f"Invalid values found in column '{key}': {invalid_values}"
+                )
+        elif allowed_values is not None:
+            invalid_values = [val for val in column_values if val not in allowed_values]
+            if invalid_values:
+                raise ValueError(
+                    f"Invalid values found in column '{key}': {invalid_values}"
+                )
+
+        # Verify values in corresponding column
+        allowed_values = value.get("values", None)
+        column_values = adata.obs[key].unique()
+
+        if "min" in value and "max" in value:
+            min_value = value["min"]
+            max_value = value["max"]
+            invalid_values = [
+                val for val in column_values if not (min_value <= val <= max_value)
+            ]
+            if invalid_values:
+                raise ValueError(
+                    f"Invalid values found in column '{key}': {invalid_values}"
+                )
+        elif allowed_values is not None:
+            invalid_values = [val for val in column_values if val not in allowed_values]
+            if invalid_values:
+                raise ValueError(
+                    f"Invalid values found in column '{key}': {invalid_values}"
+                )
 
 
-def search_dict(my_dict, columns, search=None):
+def search_dict(
+    my_dict: dict, columns: List[str], search: Optional[List[str]] = None
+) -> dict:
+    """
+    Searches a nested dictionary for specified keys in each of the columns.
+    """
     values = {}
     for column in columns:
         if column in my_dict:

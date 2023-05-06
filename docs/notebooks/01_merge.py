@@ -67,9 +67,7 @@ errors
 
 # %%
 # round length corrected plate-based study
-datasets["maynard_2020"].X = csr_matrix(
-    np.ceil(datasets["maynard_2020"].X.toarray()).astype(int)
-)
+datasets["maynard_2020"].X.data = np.ceil(datasets["maynard_2020"].X.data).astype(int)
 
 # %% [markdown] tags=[]
 # ## 2. Harmonize metadata
@@ -84,9 +82,6 @@ datasets["maynard_2020"].X = csr_matrix(
 file_path = "../../tables/meta_reference.yaml"
 with open(file_path, "r") as f:
     ref_meta_dict = yaml.load(f, Loader=yaml.Loader)
-
-# Assign range of allowed age values to dict key - yaml looks bloated otherwise ...
-ref_meta_dict["age"]["values"] = list(range(0, 120))
 
 # %%
 # List reference columns from meta yaml file
@@ -266,10 +261,6 @@ adata.obs_names = (
     + "_"
     + adata.obs_names.str.split("_").str[0]
 )
-
-# %%
-# apparently the latest ensembl GRCh38.109 annotation has a few gene symbols that already have a suffix "-1", etc. In this cases the var_name will be for example SNORD115-1-1
-# adata.var[adata.var_names.isin(["SNORD116", "SNORD116-1", "SNORD116-2", "SNORD115", "SNORD115-1", "SNORD115-1-1"])]
 
 # %%
 assert adata.var_names.is_unique

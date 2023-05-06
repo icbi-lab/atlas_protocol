@@ -1,10 +1,9 @@
+import re
 from typing import List
 
+import anndata
 import numpy as np
 import pandas as pd
-import scanpy as sc
-import anndata
-import re
 
 
 def remove_gene_version(string):
@@ -16,9 +15,7 @@ def remove_gene_version(string):
 
 
 def append_duplicate_suffix(df: pd.DataFrame, column: str, sep: str) -> pd.DataFrame:
-    """
-    Appends a numeric suffix to each duplicated value in the specified column based on index position.
-    """
+    """Appends a numeric suffix to each duplicated value in the specified column based on index position."""
     suffix_dict = {}
     df_sorted = df.sort_values(by=column)
     df_sorted = df_sorted.reset_index().sort_values(by="index").set_index("index")
@@ -32,34 +29,30 @@ def append_duplicate_suffix(df: pd.DataFrame, column: str, sep: str) -> pd.DataF
 
 
 def find_unmapped_genes(adata: anndata.AnnData) -> List[str]:
-    """
-    Finds genes in the specified AnnData object that are not mapped to any ensembl id.
-    """
+    """Finds genes in the specified AnnData object that are not mapped to any ensembl id."""
     for column in ["Gene", "symbol"]:
         if column in adata.var.columns:
             unmapped = adata[:, adata.var_names == "nan"].var[column].tolist()
     return unmapped
 
 
-def aggregate_duplicate_gene_ids(
-    adata: anndata.AnnData, gene_names: List[str]
-) -> anndata.AnnData:
+def aggregate_duplicate_gene_ids(adata: anndata.AnnData, gene_names: List[str]) -> anndata.AnnData:
     """
     Collapse duplicate gene IDs in an AnnData object by summing their expression values.
 
-    Parameters:
+    Parameters
     ----------
     adata : anndata.AnnData
         The AnnData object to process.
     gene_names : List[str]
         A list of gene names to collapse by summing their expression values.
 
-    Returns:
+    Returns
     -------
     anndata.AnnData
         The modified AnnData object with collapsed gene IDs.
 
-    Notes:
+    Notes
     -----
     Gene IDs that are not in the input list will be kept in the output AnnData object.
     Gene IDs that are empty strings, "nan", or np.nan will be excluded from the input list.

@@ -38,7 +38,6 @@ import numpy as np
 import pandas as pd
 import scanpy as sc
 import yaml
-from scipy.sparse import csr_matrix
 
 import atlas_protocol_scripts as aps
 

@@ -5,14 +5,14 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.4
+#       jupytext_version: 1.14.5
 #   kernelspec:
 #     display_name: Python [conda env:CRCA-2023-crca-scanpy]
 #     language: python
 #     name: conda-env-CRCA-2023-crca-scanpy-py
 # ---
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # # Merge datasets, harmonize annotations and metadata
 
 # %% [markdown]
@@ -23,23 +23,24 @@
 # Ideally, access to raw FASTQ files would allow mapping to the same reference genome and annotations. However, in many cases, only processed data is available that may have been mapped to different genome annotations or versions. The two most commonly used gene annotation sources are GENCODE and Ensembl, which offer standardized gene models and annotations for various organisms. Best case scenario processed datasets have unique gene ids such as ensembl_ids, unfortunaetly often only gene symbols are provided that are not unique and can change across annotation versions and sources. sometimes provide only gene symbols.
 # While it is possible to perform gene symbol-based integration, this approach is not always accurate, as gene symbols are not unique and can change between annotation versions. In contrast, before integrating the datasets we will map the available gene ids to the more consistent ensembl gene IDs that will enhance the accuracy and reproducibility of downstream analyses. :::
 #
-# Between different versions the ensembl gene ids will only change if the gene structure changes. 
+# Between different versions the ensembl gene ids will only change if the gene structure changes.
 #
 # Explain a bit more here? (e.g in newer versions new genes might be added, nothing we can do about it,
 #                             if the gene id is the same the mapped gene region should have stayed the same. -> perfect!
 #                             if the gene id has changed that means the gene structure has changed and we should not use it any more!)
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ## 1. Load the required libaries and data
 
 # %%
 import anndata
-import atlas_protocol_scripts as aps
 import numpy as np
 import pandas as pd
 import scanpy as sc
 import yaml
 from scipy.sparse import csr_matrix
+
+import atlas_protocol_scripts as aps
 
 # %%
 out_dir = "../../data/results/qc/"
@@ -69,7 +70,7 @@ errors
 # round length corrected plate-based study
 datasets["maynard_2020"].X.data = np.ceil(datasets["maynard_2020"].X.data).astype(int)
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ## 2. Harmonize metadata
 
 # %% [markdown]
@@ -80,13 +81,13 @@ datasets["maynard_2020"].X.data = np.ceil(datasets["maynard_2020"].X.data).astyp
 # %%
 # Read the YAML file and load it into a dictionary
 file_path = "../../tables/meta_reference.yaml"
-with open(file_path, "r") as f:
+with open(file_path) as f:
     ref_meta_dict = yaml.load(f, Loader=yaml.Loader)
 
 # %%
 # List reference columns from meta yaml file
 ref_meta_cols = []
-for key, sub_dict in ref_meta_dict.items():
+for key, _sub_dict in ref_meta_dict.items():
     ref_meta_cols.append(key)
 ref_meta_cols
 
@@ -144,7 +145,7 @@ for adata in datasets:
 # ## 3. Harmonize gene annotations
 
 # %% [markdown]
-# Before intgration we want ensembl ids without version numbers as var_names. 
+# Before intgration we want ensembl ids without version numbers as var_names.
 # note: we will have the best match between gene ids and symbols if we use the annotation that was used for mapping, can usually be found in the methods section of the paper or on GEO etc.
 
 # %%
@@ -155,26 +156,16 @@ gtf = aps.pp.append_duplicate_suffix(df=gtf, column="GeneSymbol", sep="-")
 gene_ids = gtf.set_index("GeneSymbol")["Geneid"].to_dict()
 
 # %%
-datasets["lambrechts_2018"].var = (
-    datasets["lambrechts_2018"].var.rename_axis("symbol").reset_index()
-)
-datasets["lambrechts_2018"].var["ensembl"] = (
-    datasets["lambrechts_2018"].var["symbol"].map(gene_ids)
-)
-datasets["lambrechts_2018"].var_names = (
-    datasets["lambrechts_2018"].var["ensembl"].apply(aps.pp.remove_gene_version)
-)
+datasets["lambrechts_2018"].var = datasets["lambrechts_2018"].var.rename_axis("symbol").reset_index()
+datasets["lambrechts_2018"].var["ensembl"] = datasets["lambrechts_2018"].var["symbol"].map(gene_ids)
+datasets["lambrechts_2018"].var_names = datasets["lambrechts_2018"].var["ensembl"].apply(aps.pp.remove_gene_version)
 
 datasets["maynard_2020"].var.reset_index(inplace=True)
-datasets["maynard_2020"].var_names = (
-    datasets["maynard_2020"].var["ensg"].apply(aps.pp.remove_gene_version)
-)
+datasets["maynard_2020"].var_names = datasets["maynard_2020"].var["ensg"].apply(aps.pp.remove_gene_version)
 
 datasets["ukim-v"].var.reset_index(inplace=True)
 datasets["ukim-v"].var["ensembl"] = datasets["ukim-v"].var["Gene"].map(gene_ids)
-datasets["ukim-v"].var_names = (
-    datasets["ukim-v"].var["ensembl"].apply(aps.pp.remove_gene_version)
-)
+datasets["ukim-v"].var_names = datasets["ukim-v"].var["ensembl"].apply(aps.pp.remove_gene_version)
 
 # %%
 # look how many genes were not mapped to ensembl ids
@@ -191,12 +182,8 @@ datasets["ukim-v"] = datasets["ukim-v"][:, ~(datasets["ukim-v"].var_names == "na
 # %%
 # aggregate counts with the same id
 for adata in datasets:
-    duplicated_ids = (
-        datasets[adata].var_names[datasets[adata].var_names.duplicated()].unique()
-    )
-    datasets[adata] = aps.pp.aggregate_duplicate_gene_ids(
-        datasets[adata], duplicated_ids
-    )
+    duplicated_ids = datasets[adata].var_names[datasets[adata].var_names.duplicated()].unique()
+    datasets[adata] = aps.pp.aggregate_duplicate_gene_ids(datasets[adata], duplicated_ids)
     assert datasets[adata].var_names.is_unique
     assert datasets[adata].obs_names.is_unique
 
@@ -247,10 +234,7 @@ adata.var_names.name = None
 
 # %%
 # Make sure samples are unique
-adata.obs["sample"] = [
-    f"{dataset}_{sample}"
-    for dataset, sample in zip(adata.obs["dataset"], adata.obs["sample"])
-]
+adata.obs["sample"] = [f"{dataset}_{sample}" for dataset, sample in zip(adata.obs["dataset"], adata.obs["sample"])]
 
 # %%
 # Append dataset and sample info to barcodes

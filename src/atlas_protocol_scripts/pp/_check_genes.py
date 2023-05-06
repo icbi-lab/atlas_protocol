@@ -75,9 +75,7 @@ def aggregate_duplicate_gene_ids(
     ].copy()  # not entirely sure that .isin() will work with symbols as substring will be matched, worst case the gene will appear as duplicate in the final adata
     # Subset for duplicate genes individually and compute sum of counts, create new AnnData objects with computed sums in .X
     sums = [np.sum(adata[:, gene].X, axis=1).A1 for gene in gene_names]
-    adatas = [
-        anndata.AnnData(X=sum.reshape((-1, 1)), obs=adata.obs.copy()) for sum in sums
-    ]
+    adatas = [anndata.AnnData(X=sum.reshape((-1, 1)), obs=adata.obs.copy()) for sum in sums]
 
     # Concatenate the new AnnData objects and the original object along axis 1 to combine the computed sums with the original data
     for i, gene in enumerate(gene_names):

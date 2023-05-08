@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.5
+#       jupytext_version: 1.14.4
 #   kernelspec:
 #     display_name: Python [conda env:CRCA-2023-crca-scanpy]
 #     language: python
@@ -157,14 +157,14 @@ gene_ids = gtf.set_index("GeneSymbol")["Geneid"].to_dict()
 
 # %%
 datasets["lambrechts_2018"].var = datasets["lambrechts_2018"].var.rename_axis("symbol").reset_index()
-datasets["lambrechts_2018"].var["ensembl"] = datasets["lambrechts_2018"].var["symbol"].map(gene_ids)
+datasets["lambrechts_2018"].var["ensembl"] = datasets["lambrechts_2018"].var["symbol"].map(gene_ids).fillna(value="unmapped")
 datasets["lambrechts_2018"].var_names = datasets["lambrechts_2018"].var["ensembl"].apply(aps.pp.remove_gene_version)
 
 datasets["maynard_2020"].var.reset_index(inplace=True)
 datasets["maynard_2020"].var_names = datasets["maynard_2020"].var["ensg"].apply(aps.pp.remove_gene_version)
 
 datasets["ukim-v"].var.reset_index(inplace=True)
-datasets["ukim-v"].var["ensembl"] = datasets["ukim-v"].var["Gene"].map(gene_ids)
+datasets["ukim-v"].var["ensembl"] = datasets["ukim-v"].var["Gene"].map(gene_ids).fillna(value="unmapped")
 datasets["ukim-v"].var_names = datasets["ukim-v"].var["ensembl"].apply(aps.pp.remove_gene_version)
 
 # %%
@@ -177,7 +177,7 @@ for name, data in datasets.items():
 
 # %%
 # remove genes without ensembl ids from the datasets
-datasets["ukim-v"] = datasets["ukim-v"][:, ~(datasets["ukim-v"].var_names == "nan")]
+datasets["ukim-v"] = datasets["ukim-v"][:, ~(datasets["ukim-v"].var_names == "unmapped")]
 
 # %%
 # aggregate counts with the same id

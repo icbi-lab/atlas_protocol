@@ -7,7 +7,10 @@ import anndata
 import re
 
 
-def remove_gene_version(string):
+def remove_gene_version(string: str) -> str:
+    """
+    Remove gene version from ensembl gene id that start with "ENSG".
+    """
     string = str(string)
     if string.startswith("ENSG"):
         return re.sub(r"\..*", "", string)
@@ -35,9 +38,10 @@ def find_unmapped_genes(adata: anndata.AnnData) -> List[str]:
     """
     Finds genes in the specified AnnData object that are not mapped to any ensembl id.
     """
+    unmapped = []
     for column in ["Gene", "symbol"]:
         if column in adata.var.columns:
-            unmapped = adata[:, adata.var_names == "nan"].var[column].tolist()
+            unmapped += adata[:, ~adata.var_names.str.startswith("ENSG")].var[column].tolist()
     return unmapped
 
 

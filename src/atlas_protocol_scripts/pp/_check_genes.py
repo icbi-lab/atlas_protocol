@@ -4,7 +4,7 @@ from typing import List
 import anndata
 import numpy as np
 import pandas as pd
-from scipy.sparse import csc_matrix, csr_matrix
+from scipy.sparse import csc_matrix
 
 
 def remove_gene_version(string: str) -> str:
@@ -17,9 +17,7 @@ def remove_gene_version(string: str) -> str:
 
 
 def append_duplicate_suffix(df: pd.DataFrame, column: str, sep: str) -> pd.DataFrame:
-    """
-    Appends a numeric suffix to each duplicated value in the specified column based on index position.
-    """
+    """Appends a numeric suffix to each duplicated value in the specified column based on index position."""
     suffix_dict = {}
     df_sorted = df.sort_values(by=column)
     df_sorted = df_sorted.reset_index().sort_values(by="index").set_index("index")
@@ -33,9 +31,7 @@ def append_duplicate_suffix(df: pd.DataFrame, column: str, sep: str) -> pd.DataF
 
 
 def find_unmapped_genes(adata: anndata.AnnData, column: str = "var_names") -> List[str]:
-    """
-    Finds genes in the specified AnnData object that are not mapped to any ensembl id.
-    """
+    """Finds genes in the specified AnnData object that are not mapped to any ensembl id."""
     unmapped = []
     if column in adata.var.columns:
         col_data = adata.var[column]
@@ -45,9 +41,7 @@ def find_unmapped_genes(adata: anndata.AnnData, column: str = "var_names") -> Li
     return unmapped
 
 
-def aggregate_duplicate_gene_ids(
-    adata: anndata.AnnData, gene_names: List[str]
-) -> anndata.AnnData:
+def aggregate_duplicate_gene_ids(adata: anndata.AnnData, gene_names: List[str]) -> anndata.AnnData:
     """
     Collapse duplicate gene IDs in an AnnData object by summing their expression values.
 

@@ -8,9 +8,7 @@ from scipy.sparse import csc_matrix, csr_matrix
 
 
 def remove_gene_version(string: str) -> str:
-    """
-    Remove gene version from ensembl gene id that start with "ENSG".
-    """
+    """Remove gene version from ensembl gene id that start with "ENSG"."""
     string = str(string)
     if string.startswith("ENSG"):
         return re.sub(r"\..*", "", string)

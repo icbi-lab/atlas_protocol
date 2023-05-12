@@ -38,6 +38,7 @@ import numpy as np
 import pandas as pd
 import scanpy as sc
 import yaml
+from scipy.sparse import csr_matrix
 
 import atlas_protocol_scripts as aps
 
@@ -98,7 +99,7 @@ ref_meta_cols
 invalid_columns = {}
 for key, adata in datasets.items():
     try:
-        aps.pp.validate_obs(adata, ref_meta_dict)
+        aps.pp.validate_obs(adata.obs, ref_meta_dict)
     except ValueError as e:
         invalid_columns[key] = e.args[0]
 invalid_columns
@@ -124,7 +125,7 @@ invalid_columns = {}
 for key, adata in datasets.items():
     try:
         aps.pp.validate_obs(
-            adata,
+            adata.obs,
             ref_meta_dict,
             keys_to_ignore=["dataset", "sample", "patient", "cell_type_salcher"],
         )
@@ -156,14 +157,14 @@ gene_ids = gtf.set_index("GeneSymbol")["Geneid"].to_dict()
 
 # %%
 datasets["lambrechts_2018"].var = datasets["lambrechts_2018"].var.rename_axis("symbol").reset_index()
-datasets["lambrechts_2018"].var["ensembl"] = datasets["lambrechts_2018"].var["symbol"].map(gene_ids).fillna(value="unmapped")
+datasets["lambrechts_2018"].var["ensembl"] = datasets["lambrechts_2018"].var["symbol"].map(gene_ids).fillna(value=datasets["lambrechts_2018"].var["symbol"])
 datasets["lambrechts_2018"].var_names = datasets["lambrechts_2018"].var["ensembl"].apply(aps.pp.remove_gene_version)
 
 datasets["maynard_2020"].var.reset_index(inplace=True)
 datasets["maynard_2020"].var_names = datasets["maynard_2020"].var["ensg"].apply(aps.pp.remove_gene_version)
 
 datasets["ukim-v"].var.reset_index(inplace=True)
-datasets["ukim-v"].var["ensembl"] = datasets["ukim-v"].var["Gene"].map(gene_ids).fillna(value="unmapped")
+datasets["ukim-v"].var["ensembl"] = datasets["ukim-v"].var["Gene"].map(gene_ids).fillna(value=datasets["ukim-v"].var["Gene"])
 datasets["ukim-v"].var_names = datasets["ukim-v"].var["ensembl"].apply(aps.pp.remove_gene_version)
 
 # %%
@@ -176,7 +177,7 @@ for name, data in datasets.items():
 
 # %%
 # remove genes without ensembl ids from the datasets
-datasets["ukim-v"] = datasets["ukim-v"][:, ~(datasets["ukim-v"].var_names == "unmapped")]
+datasets["ukim-v"] = datasets["ukim-v"][:, (datasets["ukim-v"].var_names.str.startswith("ENSG"))]
 
 # %%
 # aggregate counts with the same id

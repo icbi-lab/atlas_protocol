@@ -110,17 +110,3 @@ def validate_obs(
             ]
             if invalid_values:
                 raise ValueError(f"Invalid values found in column '{key}': {invalid_values}")
-
-
-def search_dict(my_dict: dict, columns: List[str], search: Optional[List[str]] = None) -> dict:
-    """Searches a nested dictionary for specified keys in each of the columns."""
-    values = {}
-    for column in columns:
-        if column in my_dict:
-            column_values = {}
-            for key, value in my_dict[column].items():
-                if not search or key in search:
-                    if key in ["values", "description", "type"]:
-                        column_values[key] = value
-            values[column] = column_values
-    return values

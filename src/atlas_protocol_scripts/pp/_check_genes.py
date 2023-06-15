@@ -19,8 +19,7 @@ def remove_gene_version(string: str) -> str:
 def append_duplicate_suffix(df: pd.DataFrame, column: str, sep: str) -> pd.DataFrame:
     """Appends a numeric suffix to each duplicated value in the specified column based on index position."""
     suffix_dict = {}
-    df_sorted = df.sort_values(by=column)
-    df_sorted = df_sorted.reset_index().sort_values(by="index").set_index("index")
+    df_sorted = df.sort_values(by=column).sort_index()
     for i, val in enumerate(df_sorted[column]):
         if val in suffix_dict:
             suffix_dict[val] += 1

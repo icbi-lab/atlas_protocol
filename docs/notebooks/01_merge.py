@@ -27,7 +27,7 @@
 #  * patient metadata
 #  * sample metadata
 #  * cell metadata
-#  
+#
 # Commonly, this information can be found in the original publication, either in the methods section or supplementary tables. Some metadata might also be available on data repositories such as [GEO](https://www.ncbi.nlm.nih.gov/geo/), [SRA](https://www.ncbi.nlm.nih.gov/sra), [Zenodo](https://zenodo.org), [cellxgene](https://cellxgene.cziscience.com), [synapse](https://www.synapse.org), or custom webpages that were created for a specific study. As a last resort, you can contact the authors for assistance.
 # :::
 #
@@ -43,7 +43,7 @@
 #  - tissue prcessing: fresh vs. frozen
 #  - protocol: single cell vs. single nuclei
 #  - prior cell type enrichment: naive, CD45+, etc.
-#  
+#
 # In addition, it is worth noting whether there are supplementary assays, such as VDJ-seq and/or CITE-seq data, that can help resolve immune cell heterogeneity
 # :::
 #
@@ -68,7 +68,7 @@
 # :::
 #
 # :::{Cell metadata}
-# If available, the cell type annotation from the original study can be used for reference mapping. See <!-- [link to chapter](TODO) --> 
+# If available, the cell type annotation from the original study can be used for reference mapping. See <!-- [link to chapter](TODO) -->
 # :::
 
 # %% [markdown]
@@ -237,34 +237,20 @@ gene_ids = gtf.set_index("GeneSymbol")["Geneid"].to_dict()
 # 1. Map the dictonary to available symbol annotation and fill missing keys with the respective symbol to create new column "ensembl".
 # 2. Remove Ensembl ID version numbers and set column "ensembl" as var_names.
 
-datasets["lambrechts_2018"].var = (
-    datasets["lambrechts_2018"].var.rename_axis("symbol").reset_index()
-)
+datasets["lambrechts_2018"].var = datasets["lambrechts_2018"].var.rename_axis("symbol").reset_index()
 datasets["lambrechts_2018"].var["ensembl"] = (
-    datasets["lambrechts_2018"]
-    .var["symbol"]
-    .map(gene_ids)
-    .fillna(value=datasets["lambrechts_2018"].var["symbol"])
+    datasets["lambrechts_2018"].var["symbol"].map(gene_ids).fillna(value=datasets["lambrechts_2018"].var["symbol"])
 )
-datasets["lambrechts_2018"].var_names = (
-    datasets["lambrechts_2018"].var["ensembl"].apply(aps.pp.remove_gene_version)
-)
+datasets["lambrechts_2018"].var_names = datasets["lambrechts_2018"].var["ensembl"].apply(aps.pp.remove_gene_version)
 
 datasets["maynard_2020"].var.reset_index(inplace=True)
-datasets["maynard_2020"].var_names = (
-    datasets["maynard_2020"].var["ensg"].apply(aps.pp.remove_gene_version)
-)
+datasets["maynard_2020"].var_names = datasets["maynard_2020"].var["ensg"].apply(aps.pp.remove_gene_version)
 
 datasets["ukim-v"].var.reset_index(inplace=True)
 datasets["ukim-v"].var["ensembl"] = (
-    datasets["ukim-v"]
-    .var["Gene"]
-    .map(gene_ids)
-    .fillna(value=datasets["ukim-v"].var["Gene"])
+    datasets["ukim-v"].var["Gene"].map(gene_ids).fillna(value=datasets["ukim-v"].var["Gene"])
 )
-datasets["ukim-v"].var_names = (
-    datasets["ukim-v"].var["ensembl"].apply(aps.pp.remove_gene_version)
-)
+datasets["ukim-v"].var_names = datasets["ukim-v"].var["ensembl"].apply(aps.pp.remove_gene_version)
 
 # %%
 # Look how many genes were not mapped to ensembl ids
@@ -276,9 +262,7 @@ for name, data in datasets.items():
 
 # %%
 # Remove genes without ensembl ids from the datasets
-datasets["ukim-v"] = datasets["ukim-v"][
-    :, (datasets["ukim-v"].var_names.str.startswith("ENSG"))
-]
+datasets["ukim-v"] = datasets["ukim-v"][:, (datasets["ukim-v"].var_names.str.startswith("ENSG"))]
 
 # %% [markdown]
 # :::{note}
@@ -288,12 +272,8 @@ datasets["ukim-v"] = datasets["ukim-v"][
 # %%
 # Aggregate counts with the same id
 for adata in datasets:
-    duplicated_ids = (
-        datasets[adata].var_names[datasets[adata].var_names.duplicated()].unique()
-    )
-    datasets[adata] = aps.pp.aggregate_duplicate_gene_ids(
-        datasets[adata], duplicated_ids
-    )
+    duplicated_ids = datasets[adata].var_names[datasets[adata].var_names.duplicated()].unique()
+    datasets[adata] = aps.pp.aggregate_duplicate_gene_ids(datasets[adata], duplicated_ids)
     assert datasets[adata].var_names.is_unique
     assert datasets[adata].obs_names.is_unique
 
@@ -316,10 +296,7 @@ adata = anndata.concat(datasets, index_unique="_", join="outer", fill_value=0)
 
 # %%
 # Make sure samples are unique
-adata.obs["sample"] = [
-    f"{dataset}_{sample}"
-    for dataset, sample in zip(adata.obs["dataset"], adata.obs["sample"])
-]
+adata.obs["sample"] = [f"{dataset}_{sample}" for dataset, sample in zip(adata.obs["dataset"], adata.obs["sample"])]
 
 # Append dataset and sample info to barcodes
 adata.obs_names = (
@@ -361,9 +338,7 @@ adata.var_names.name = None
 
 # %%
 # Filter genes: must be expressed in at least 25 percent of the samples
-adata.obs["sample"] = pd.Categorical(
-    adata.obs["sample"], categories=adata.obs["sample"].unique()
-)
+adata.obs["sample"] = pd.Categorical(adata.obs["sample"], categories=adata.obs["sample"].unique())
 
 res = pd.DataFrame(columns=adata.var_names, index=adata.obs["sample"].cat.categories)
 for sample in adata.obs["sample"].cat.categories:

@@ -97,12 +97,14 @@ rm Homo_sapiens.GRCh38.109.gtf.gz
 `gtf_to_table.sh` will only work for newer annotations.
 
 The first versions that do not work:
-- `Gencode version 25` released 2016-07-19
-- `Ensembl version 76` released 2014-07-18
+
+-   `Gencode version 25` released 2016-07-19
+-   `Ensembl version 76` released 2014-07-18
 
 For older versions use:
 
 ```bash
 zcat gencode.v25.primary_assembly.annotation.gtf.gz | awk 'BEGIN{FS="\t";OFS=","}$3=="gene"{split($9,a,";");split(a[1],gene_id,"\"");split(a[4],gene_name,"\""); print gene_id[2],gene_name[2]}' | sed '1i\Geneid,GeneSymbol' > gencode.v25_gene_annotation_table.csv
 ```
+
 :::

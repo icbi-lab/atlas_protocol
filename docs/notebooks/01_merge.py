@@ -7,9 +7,9 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.14.4
 #   kernelspec:
-#     display_name: Python [conda env:CRCA-2023-crca-scanpy]
+#     display_name: Python [conda env:.conda-atlas_protocol]
 #     language: python
-#     name: conda-env-CRCA-2023-crca-scanpy-py
+#     name: conda-env-.conda-atlas_protocol-py
 # ---
 
 # %% [markdown]
@@ -295,8 +295,9 @@ del datasets["ukim-v"].obsm["surface_protein"]
 adata = anndata.concat(datasets, index_unique="_", join="outer", fill_value=0)
 
 # %%
-# Make sure samples are unique
+# Make sure samples/patients are unique
 adata.obs["sample"] = [f"{dataset}_{sample}" for dataset, sample in zip(adata.obs["dataset"], adata.obs["sample"])]
+adata.obs["patient"] = [f"{dataset}_{patient}" for dataset, patient in zip(adata.obs["dataset"], adata.obs["patient"])]
 
 # Append dataset and sample info to barcodes
 adata.obs_names = (

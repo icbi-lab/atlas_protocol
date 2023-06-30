@@ -51,11 +51,12 @@ While dataset-to-dataset differences can be mitigated by data integration, they 
 
 Publicly available single-cell datasets come in all forms and flavors. For building the atlas, we need for each dataset (1) a gene expression count matrix and (2) cell-level metadata. Gene expression data is often available from standardized repositories such as gene expression omnibus (GEO), while metadata may be available as supplementary information of the original publication. For some datasets, only read-level data can be downloaded as FASTQ files and you will need to preprocess the data from scratch. Ideally, all datasets could be re-processed from FASTQ files with a consistent reference genome and genome annotations. However, in our experience, some datasets are only available in a processed form, requiring some sort of gene identifier remapping later on.
 
-:::{seealso}
+:::{see also}
 Raw data preprocessing is beyond the scope of this tutorial. Please refer to the following sources for more details:
 
 -   The [nf-core/scrnaseq](https://nf-co.re/scrnaseq) workflow for single-cell RNA-seq preprocessing
 -   The [Raw data processing](https://www.sc-best-practices.org/introduction/raw_data_processing.html) chapter of the single-cell best practice book {cite}`heumosBestPracticesSinglecell2023`.
+-   Usefull resource to browse available datasets: [Single cell studies database](https://docs.google.com/spreadsheets/d/1En7-UV0k0laDiIfjFkdn7dggyR7jIk3WH8QgXaMOZF0/edit#gid=0)
 
 :::
 
@@ -78,10 +79,17 @@ For this protocol, we provide both the TPM matrix and the clinical annotation ta
 curl TODO
 ```
 
-## Obtain reference genome GTF file
+## Obtain reference genome GTF files
 
-For remapping gene symbols, you need a GTF file with genome annotations.
+To facilitate integration of the four datasets, it is important to standardize the provided gene IDs. In this tutorial, we will download the GTF files from [gencode](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human)/[ensembl](https://ftp.ensembl.org/pub/) that were originally used to annotate the genes in each dataset, enabling us to remap the provided gene symbols. This remapping is necessary to resolve ambiguity in gene symbols and ensure that only counts mapped to the same genomic location are merged, using unique Ensembl IDs as identifiers.
 
 ```bash
-curl TODO
+cd ./tables
+wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/gencode.v32.primary_assembly.annotation.gtf.gz
+../bin/gtf_to_table.sh gencode.v32.primary_assembly.annotation.gtf.gz gencode.v32_gene_annotation_table.csv gencode
+rm gencode.v32.primary_assembly.annotation.gtf.gz
+
+wget https://ftp.ensembl.org/pub/release-109/gtf/homo_sapiens/Homo_sapiens.GRCh38.109.gtf.gz
+../bin/gtf_to_table.sh Homo_sapiens.GRCh38.109.gtf.gz Homo_sapiens.GRCh38.109_gene_annotation_table.csv ensembl
+rm Homo_sapiens.GRCh38.109.gtf.gz
 ```

@@ -7,7 +7,7 @@ name = "atlas_protocol"
 version = "0.0.1"
 description = "A computational protocol for atlas-level data integration and analysis as performed in Salcher et al. (2022). "
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = {file = "LICENSE"}
 authors = [
     {name = "Gregor Sturm"},
@@ -63,12 +63,10 @@ addopts = [
 
 [tool.black]
 line-length = 120
-target-version = ["py38"]
 
 [tool.ruff]
 src = ["src"]
 line-length = 120
-target-version = "py38"
 select = [
     "F",  # Errors detected by Pyflakes
     "E",  # Error detected by Pycodestyle

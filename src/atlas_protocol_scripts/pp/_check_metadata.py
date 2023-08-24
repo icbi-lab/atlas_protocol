@@ -11,6 +11,15 @@ def validate_obs(
 ) -> None:
     """Validates the metadata in the `adata.obs` or a pandas DataFrame against a reference metadata dictionary.
 
+    This function validates the metadata information in the `.obs` attribute of an AnnData object or a Pandas DataFrame
+    against a reference metadata dictionary `ref_meta_dict`. The `ref_meta_dict` should be a dictionary where the keys
+    represent the metadata columns to be validated, and the values are dictionaries with a 'values' key containing a list
+    of allowed values for that metadata column. The function raises a `ValueError` if any missing columns or invalid values
+    are found in the metadata columns of the AnnData object. The `keys_to_ignore` parameter can be used to specify a
+    list of keys that should be ignored during validation. If missing columns are found, the error message will include
+    the missing columns in the order of the input dictionary. If invalid values are found, the error message will
+    include the invalid values for the corresponding column.
+
     Parameters
     ----------
     adata_obs
@@ -19,22 +28,6 @@ def validate_obs(
         Reference metadata dictionary.
     keys_to_ignore
         List of keys to ignore during validation. Defaults to None.
-
-    Raises
-    ------
-    ValueError
-        If missing columns or invalid values are found in the metadata.
-
-    Note:
-    -----
-        This function validates the metadata information in the `.obs` attribute of an AnnData object or a Pandas DataFrame
-        against a reference metadata dictionary `ref_meta_dict`. The `ref_meta_dict` should be a dictionary where the keys
-        represent the metadata columns to be validated, and the values are dictionaries with a 'values' key containing a list
-        of allowed values for that metadata column. The function raises a `ValueError` if any missing columns or invalid values
-        are found in the metadata columns of the AnnData object. The `keys_to_ignore` parameter can be used to specify a
-        list of keys that should be ignored during validation. If missing columns are found, the error message will include
-        the missing columns in the order of the input dictionary. If invalid values are found, the error message will
-        include the invalid values for the corresponding column.
     """
     if keys_to_ignore is None:
         keys_to_ignore = []

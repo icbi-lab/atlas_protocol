@@ -2,7 +2,7 @@ import re
 
 import numpy as np
 import pandas as pd
-from anndata import AnnData, concat
+from anndata import AnnData
 from scipy.sparse import csc_matrix
 
 

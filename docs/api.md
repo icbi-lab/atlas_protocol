@@ -22,6 +22,7 @@
     :toctree: generated
 
     pp.is_outlier
+    pp.validate_obs
 ```
 
 ## Tools

@@ -59,7 +59,7 @@ def aggregate_duplicate_gene_ids(adata: AnnData, gene_names: list[str]) -> AnnDa
     # Reshape the list of arrays to match the dimensions of adata.X
     new_X = np.concatenate(sums).reshape(-1, len(gene_names))
 
-    adata_sums = anndata.AnnData(
+    adata_sums = AnnData(
         X=new_X,
         obs=adata.obs,
         var=pd.DataFrame(gene_names).set_index(0).rename_axis(None),

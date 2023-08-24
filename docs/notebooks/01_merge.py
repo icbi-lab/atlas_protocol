@@ -116,7 +116,7 @@ datasets["maynard_2020"].X.data = np.ceil(datasets["maynard_2020"].X.data).astyp
 #
 # To ensure streamlined metadata across our datasets, we will use a custom reference metadata YAML file that specifies the desired columns and the permissible values for each column in `adata.obs`. Here is a shortened example of different key-value pairs along with descriptions:
 #
-# ```{yaml}
+# ```
 # origin:
 #     values:
 #         - tumor_primary

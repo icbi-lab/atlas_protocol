@@ -1,7 +1,8 @@
 import warnings
+from collections.abc import Sequence
 from functools import reduce
 from operator import and_
-from typing import Sequence, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd

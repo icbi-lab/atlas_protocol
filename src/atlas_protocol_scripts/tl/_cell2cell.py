@@ -2,7 +2,7 @@
 
 Focuses on differential cellphonedb analysis between conditions.
 """
-from typing import List, Literal
+from typing import Literal
 
 import altair as alt
 import numpy as np
@@ -42,7 +42,7 @@ class CpdbAnalysis:
         cpdb,
         adata,
         *,
-        pseudobulk_group_by: List[str],
+        pseudobulk_group_by: list[str],
         cell_type_column: str,
         min_obs=10,
     ):

@@ -2,7 +2,7 @@ import re
 
 import numpy as np
 import pandas as pd
-from anndata import AnnData
+from anndata import AnnData, concat
 from scipy.sparse import csc_matrix
 
 
@@ -49,6 +49,8 @@ def aggregate_duplicate_gene_ids(adata: AnnData, gene_names: list[str]) -> AnnDa
     gene_names
         list of gene names to collapse by summing their expression values.
     """
+    import anndata
+
     gene_names = [g for g in gene_names if g not in ["", "nan", np.nan]]
     if not gene_names:
         return adata

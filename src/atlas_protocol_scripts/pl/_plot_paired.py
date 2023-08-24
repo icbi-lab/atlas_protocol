@@ -1,8 +1,8 @@
 # Libraries for visualization
 import warnings
+from collections.abc import Sequence
 from itertools import zip_longest
 from math import ceil
-from typing import Sequence
 
 import matplotlib.pyplot as plt
 import pandas as pd

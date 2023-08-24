@@ -39,7 +39,7 @@ def find_unmapped_genes(adata: AnnData, column: str = "var_names") -> list[str]:
     return unmapped
 
 
-def aggregate_duplicate_gene_ids(adata: AnnData, gene_names: list[str]) -> anndata.AnnData:
+def aggregate_duplicate_gene_ids(adata: AnnData, gene_names: list[str]) -> AnnData:
     """Collapse duplicate gene IDs in an AnnData object by summing their expression values.
 
     Parameters

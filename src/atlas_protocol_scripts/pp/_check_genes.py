@@ -1,6 +1,6 @@
 import re
 
-import anndata
+from anndata import AnnData
 import numpy as np
 import pandas as pd
 from scipy.sparse import csc_matrix
@@ -28,7 +28,7 @@ def append_duplicate_suffix(df: pd.DataFrame, column: str, sep: str) -> pd.DataF
     return df_sorted.sort_index()
 
 
-def find_unmapped_genes(adata: anndata.AnnData, column: str = "var_names") -> list[str]:
+def find_unmapped_genes(adata: AnnData, column: str = "var_names") -> list[str]:
     """Finds genes in the specified AnnData object that are not mapped to any ensembl id."""
     unmapped = []
     if column in adata.var.columns:
@@ -39,26 +39,15 @@ def find_unmapped_genes(adata: anndata.AnnData, column: str = "var_names") -> li
     return unmapped
 
 
-def aggregate_duplicate_gene_ids(adata: anndata.AnnData, gene_names: list[str]) -> anndata.AnnData:
-    """
-    Collapse duplicate gene IDs in an AnnData object by summing their expression values.
+def aggregate_duplicate_gene_ids(adata: AnnData, gene_names: list[str]) -> anndata.AnnData:
+    """Collapse duplicate gene IDs in an AnnData object by summing their expression values.
 
     Parameters
     ----------
-    adata : anndata.AnnData
-    The AnnData object to process.
-    gene_names : List[str]
-    A list of gene names to collapse by summing their expression values.
-
-    Returns
-    -------
-    anndata.AnnData
-    The modified AnnData object with collapsed gene IDs.
-
-    Notes
-    -----
-    Gene IDs that are not in the input list will be kept in the output AnnData object.
-    Gene IDs that are empty strings, "nan", or np.nan will be excluded from the input list.
+    adata
+        AnnData object
+    gene_names
+        list of gene names to collapse by summing their expression values.
     """
     gene_names = [g for g in gene_names if g not in ["", "nan", np.nan]]
     if not gene_names:

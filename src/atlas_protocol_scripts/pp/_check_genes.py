@@ -1,8 +1,8 @@
 import re
 
-from anndata import AnnData
 import numpy as np
 import pandas as pd
+from anndata import AnnData
 from scipy.sparse import csc_matrix
 
 

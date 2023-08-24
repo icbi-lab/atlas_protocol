@@ -1,4 +1,3 @@
-from typing import Tuple
 
 import pandas as pd
 
@@ -10,7 +9,7 @@ def long_form_df_to_decoupler(
     p_col: str = "pvalue",
     log_fc_col: str = "log2FoldChange",
     group_col: str = "cell_type",
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Convert a long-form data frame of DE results into a pair of logFC/pvalue matrices as used by decoupler.
 
     Parameters

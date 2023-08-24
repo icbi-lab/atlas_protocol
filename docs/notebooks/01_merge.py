@@ -5,11 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.4
-#   kernelspec:
-#     display_name: Python [conda env:.conda-atlas_protocol]
-#     language: python
-#     name: conda-env-.conda-atlas_protocol-py
+#       jupytext_version: 1.15.0
 # ---
 
 # %% [markdown]
@@ -76,11 +72,12 @@
 
 # %%
 import anndata
-import atlas_protocol_scripts as aps
 import numpy as np
 import pandas as pd
 import scanpy as sc
 import yaml
+
+import atlas_protocol_scripts as aps
 
 # %%
 out_dir = "../../data/results/merge/"
@@ -158,16 +155,13 @@ ref_meta_cols
 
 # %%
 # Loop over datasets and apply validate_obs function to check if all columns are present across all datasets
-for key, adata in datasets.items():
-    try:
-        aps.pp.validate_obs(adata.obs, ref_meta_dict)
-    except ValueError as e:
-        raise ValueError(e.args[0])
+for adata in datasets.values():
+    aps.pp.validate_obs(adata.obs, ref_meta_dict)
 
 # %% [markdown]
 # The `ValueError` tells us that we need to add missing metadata columns in some of the datasets.
 
-# %% tags=[]
+# %%
 # Search reference dict for permissible values of missing columns
 ref_meta_dict["platform"]
 
@@ -182,15 +176,12 @@ datasets["ukim-v"].obs["cell_type_salcher"] = "Unknown"
 
 # %%
 # Loop over datasets and apply validate_obs function. Additionally, we will exclude columns from the permissible values check that are expected to be unique within each dataset.
-for key, adata in datasets.items():
-    try:
-        aps.pp.validate_obs(
-            adata.obs,
-            ref_meta_dict,
-            keys_to_ignore=["dataset", "sample", "patient", "cell_type_salcher"],
-        )
-    except ValueError as e:
-        raise ValueError(e.args[0])
+for adata in datasets.values():
+    aps.pp.validate_obs(
+        adata.obs,
+        ref_meta_dict,
+        keys_to_ignore=["dataset", "sample", "patient", "cell_type_salcher"],
+    )
 
 # %%
 # Subset adata.obs columns to keep only reference columns from meta yaml file

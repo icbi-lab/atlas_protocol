@@ -51,12 +51,12 @@ While dataset-to-dataset differences can be mitigated by data integration, they 
 
 Publicly available single-cell datasets come in all forms and flavors. For building the atlas, we need for each dataset (1) a gene expression count matrix and (2) cell-level metadata. Gene expression data is often available from standardized repositories such as gene expression omnibus (GEO), while metadata may be available as supplementary information of the original publication. For some datasets, only read-level data can be downloaded as FASTQ files and you will need to preprocess the data from scratch. Ideally, all datasets could be re-processed from FASTQ files with a consistent reference genome and genome annotations. However, in our experience, some datasets are only available in a processed form, requiring some sort of gene identifier remapping later on.
 
-:::{see also}
+:::{seealso}
 Raw data preprocessing is beyond the scope of this tutorial. Please refer to the following sources for more details:
 
 -   The [nf-core/scrnaseq](https://nf-co.re/scrnaseq) workflow for single-cell RNA-seq preprocessing
 -   The [Raw data processing](https://www.sc-best-practices.org/introduction/raw_data_processing.html) chapter of the single-cell best practice book {cite}`heumosBestPracticesSinglecell2023`.
--   Usefull resource to browse available datasets: [Single cell studies database](https://docs.google.com/spreadsheets/d/1En7-UV0k0laDiIfjFkdn7dggyR7jIk3WH8QgXaMOZF0/edit#gid=0)
+-   Usefull resource to browse available datasets: [Single cell studies database](https://docs.google.com/spreadsheets/d/1En7-UV0k0laDiIfjFkdn7dggyR7jIk3WH8QgXaMOZF0/edit#gid=0) {cite}`svensson2020curated`
 
 :::
 

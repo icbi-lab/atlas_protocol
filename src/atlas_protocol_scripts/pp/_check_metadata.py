@@ -10,8 +10,7 @@ def validate_obs(
     keys_to_ignore: Optional[List[str]] = None,
 ) -> None:
     """
-    Validates the metadata information in the `.obs` attribute of an AnnData object or a Pandas DataFrame against a
-    reference metadata dictionary.
+    Validates the metadata in the `adata.obs` or a pandas DataFrame against a reference metadata dictionary.
 
     Parameters
     ----------
@@ -58,7 +57,7 @@ def validate_obs(
 
         # Raise a warning if the column contains only NaN values
         if adata_obs[key].dropna().empty:
-            warnings.warn(f"Column '{key}' contains only missing values")
+            warnings.warn(f"Column '{key}' contains only missing values", stacklevel=1)
 
         if key not in adata_obs.columns:
             raise ValueError(f"Missing columns: {key}")
@@ -68,9 +67,8 @@ def validate_obs(
         expected_type = value.get("type", None)
 
         if expected_type is not None and column_type != expected_type:
-            offending_value = adata_obs[key][adata_obs[key].apply(lambda x: type(x) != expected_type)].iloc[0]
             raise ValueError(
-                f"Unexpected data type found in column '{key}'. Expected '{expected_type}', but found '{offending_value}'."
+                f"Unexpected data type found in column '{key}'. Expected '{expected_type}', but found '{column_type}'."
             )
 
         # Verify values in corresponding column

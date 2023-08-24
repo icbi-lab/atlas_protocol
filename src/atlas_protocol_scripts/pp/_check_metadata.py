@@ -1,13 +1,13 @@
 import warnings
-from typing import Dict, List, Optional
+from typing import Optional
 
 import pandas as pd
 
 
 def validate_obs(
     adata_obs: pd.DataFrame,
-    ref_meta_dict: Dict[str, Dict[str, List]],
-    keys_to_ignore: Optional[List[str]] = None,
+    ref_meta_dict: dict[str, dict[str, list]],
+    keys_to_ignore: Optional[list[str]] = None,
 ) -> None:
     """
     Validates the metadata in the `adata.obs` or a pandas DataFrame against a reference metadata dictionary.

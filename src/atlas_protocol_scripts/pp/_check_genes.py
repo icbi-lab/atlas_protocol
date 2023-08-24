@@ -1,5 +1,4 @@
 import re
-from typing import List
 
 import anndata
 import numpy as np
@@ -29,7 +28,7 @@ def append_duplicate_suffix(df: pd.DataFrame, column: str, sep: str) -> pd.DataF
     return df_sorted.sort_index()
 
 
-def find_unmapped_genes(adata: anndata.AnnData, column: str = "var_names") -> List[str]:
+def find_unmapped_genes(adata: anndata.AnnData, column: str = "var_names") -> list[str]:
     """Finds genes in the specified AnnData object that are not mapped to any ensembl id."""
     unmapped = []
     if column in adata.var.columns:
@@ -40,7 +39,7 @@ def find_unmapped_genes(adata: anndata.AnnData, column: str = "var_names") -> Li
     return unmapped
 
 
-def aggregate_duplicate_gene_ids(adata: anndata.AnnData, gene_names: List[str]) -> anndata.AnnData:
+def aggregate_duplicate_gene_ids(adata: anndata.AnnData, gene_names: list[str]) -> anndata.AnnData:
     """
     Collapse duplicate gene IDs in an AnnData object by summing their expression values.
 

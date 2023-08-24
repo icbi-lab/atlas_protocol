@@ -27,12 +27,13 @@
 # Commonly, this information can be found in the original publication, either in the methods section or supplementary tables. Some metadata might also be available on data repositories such as [GEO](https://www.ncbi.nlm.nih.gov/geo/), [SRA](https://www.ncbi.nlm.nih.gov/sra), [Zenodo](https://zenodo.org), [cellxgene](https://cellxgene.cziscience.com), [synapse](https://www.synapse.org), or custom webpages that were created for a specific study. As a last resort, you can contact the authors for assistance.
 # :::
 #
-# :::{See also}
+# :::{seealso}
 # - An example of how to organize metadata across multiple datasets can be found in the study conducted by {cite}`zilbauer2023`.
 # - [sfaira](https://sfaira.readthedocs.io/en/latest/): Framework to organize and use publicly available datasets: {cite}`fischer2021sfaira`
 # :::
 #
-# :::{Study metadata}
+# :::{admonition} Study metadata
+# :class: tip
 # Typical examples:
 #
 #  - sequencing platform: Smartseq vs 10x 3' v1/v2/v3, 10x 5', etc.
@@ -43,7 +44,8 @@
 # In addition, it is worth noting whether there are supplementary assays, such as VDJ-seq and/or CITE-seq data, that can help resolve immune cell heterogeneity
 # :::
 #
-# :::{Patient metadata}
+# :::{admonition} Patient metadata
+# :class: tip
 # Typical examples:
 #
 #  - sex: male vs. female
@@ -52,7 +54,8 @@
 #  - treatment status: naive vs. treated
 # :::
 #
-# :::{Sample metadata}
+# :::{admonition} Sample metadata
+# :class: tip
 # Typical examples:
 #
 #  - sample type: tumor/normal/pbmc/metastasis/etc.
@@ -63,7 +66,8 @@
 #  - known driver mutations
 # :::
 #
-# :::{Cell metadata}
+# :::{admonition} Cell metadata
+# :class: tip
 # If available, the cell type annotation from the original study can be used for reference mapping. See <!-- [link to chapter](TODO) -->
 # :::
 
@@ -205,11 +209,12 @@ for adata in datasets:
 # Once merged, we will update all annotations using the most recent reference, and any deprecated IDs will be removed to obtain the best possible updated version.
 # :::
 #
-# :::{See also}
+# :::{seealso}
 #  - {cite}`bruford2020`
 # :::
 #
-# :::{Alternative approaches}
+# :::{admonition} Alternative approaches
+# :class: tip
 #  - [python gtfparse](https://github.com/openvax/gtfparse) is an alternative tool for loading a gtf file into Python
 #  - When using gene symbols for mapping, it is recommended to update them using libraries such as [mygene-py](https://docs.mygene.info/projects/mygene-py/en/latest/) or by using the ensembl biomart aliases [ensembl biomart aliases](https://biomart.genenames.org) before merging the datasets.
 # :::

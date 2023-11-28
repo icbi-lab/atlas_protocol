@@ -30,7 +30,6 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    # CLI for bumping the version number
     "pre-commit",
     "twine>=4.0.2"
 ]
@@ -46,10 +45,11 @@ doc = [
     "ipykernel",
     "ipython",
     "sphinx-copybutton",
+    "pandas",
 ]
 test = [
     "pytest",
-    "pytest-cov",
+    "coverage",
 ]
 
 [tool.hatch.build.targets.wheel]

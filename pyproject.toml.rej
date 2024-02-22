@@ -1,0 +1,31 @@
+diff a/pyproject.toml b/pyproject.toml	(rejected hunks)
+@@ -21,14 +21,13 @@ urls.Home-page = "https://github.com/icbi-lab/atlas_protocol"
+ dependencies = [
+     "anndata",
+     # for debug logging (referenced from the issue template)
+-    "session-info"
++    "session-info",
+ ]
+ 
+ [project.optional-dependencies]
+ dev = [
+-    # CLI for bumping the version number
+     "pre-commit",
+-    "twine>=4.0.2"
++    "twine>=4.0.2",
+ ]
+ doc = [
+     "docutils>=0.8,!=0.18.*,!=0.19.*",
+@@ -111,10 +114,10 @@ ignore = [
+     "D213",
+ ]
+ 
+-[tool.ruff.pydocstyle]
++[tool.ruff.lint.pydocstyle]
+ convention = "numpy"
+ 
+-[tool.ruff.per-file-ignores]
++[tool.ruff.lint.per-file-ignores]
+ "docs/*" = ["I"]
+ "tests/*" = ["D"]
+ "*/__init__.py" = ["F401"]

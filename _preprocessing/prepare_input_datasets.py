@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.0
+#       jupytext_version: 1.16.4
 #   kernelspec:
 #     display_name: Python [conda env:conda-2023-atlas-protocol]
 #     language: python

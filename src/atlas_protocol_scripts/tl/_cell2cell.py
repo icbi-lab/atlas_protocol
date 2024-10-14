@@ -2,6 +2,7 @@
 
 Focuses on differential cellphonedb analysis between conditions.
 """
+
 from typing import Literal
 
 import altair as alt
